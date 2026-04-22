@@ -1,0 +1,8 @@
+# Never send these to Docker daemon
+ayudando/server/vendor
+ayudando/server/node_modules
+ayudando/frontend/node_modules
+ayudando/frontend/.angular
+ayudando/**/*.sql
+.git
+.env

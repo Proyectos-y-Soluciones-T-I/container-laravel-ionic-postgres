@@ -1,0 +1,19 @@
+# --- Proyecto fuente (repo separado) -----------------------------------------
+ayudando/
+
+# --- Variables de entorno (credenciales) -------------------------------------
+.env
+!.env.example
+
+# --- Volúmenes y datos generados por Docker -----------------------------------
+docker/data/
+*.log
+
+# --- OS / Editor -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
