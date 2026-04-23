@@ -1,6 +1,6 @@
 FROM node:18.16.1-alpine
 
-RUN apk add --no-cache git python3 make g++
+RUN apk add --no-cache git python3 make g++ vips-dev fftw-dev
 
 RUN npm install -g \
     @ionic/cli@7 \

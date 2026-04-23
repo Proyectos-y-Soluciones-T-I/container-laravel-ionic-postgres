@@ -3,8 +3,18 @@ set -e
 
 echo "[ayudando] Starting backend..."
 
-# Fix storage/cache permissions
-chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+# Force permissions — Windows Docker bind mounts ignore chmod on host,
+# but setting 777 ensures the container process (root via zz-docker-user.conf) can write.
+chmod -R 777 storage bootstrap/cache 2>/dev/null || true
+
+# Ensure required storage subdirs exist
+mkdir -p storage/logs \
+         storage/framework/cache \
+         storage/framework/sessions \
+         storage/framework/views \
+         storage/app/public
+
+chmod -R 777 storage bootstrap/cache 2>/dev/null || true
 
 # Install composer deps if vendor is missing
 if [ ! -f "vendor/autoload.php" ]; then
@@ -23,4 +33,4 @@ if [ ! -e "public/storage" ]; then
 fi
 
 echo "[ayudando] PHP-FPM ready on :9000"
-exec php-fpm
+exec php-fpm -R

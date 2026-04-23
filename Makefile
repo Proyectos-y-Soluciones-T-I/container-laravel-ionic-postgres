@@ -31,9 +31,9 @@ shell-db:
 artisan:
 	docker exec ayudando_backend php artisan $(cmd)
 
-# Import SQL dump: make db-import
+# Import TAR dump: make db-import
 db-import:
-	docker exec -i ayudando_postgres psql -U postgres -d ayudando < ayudando/ayudando.sql
+	docker exec -i ayudando_postgres pg_restore -U postgres -d ayudando --no-owner --no-acl < ayudando/ayudando.tar
 
 migrate:
 	docker exec ayudando_backend php artisan migrate

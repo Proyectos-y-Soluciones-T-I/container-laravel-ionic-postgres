@@ -3,10 +3,12 @@ set -e
 
 echo "[ayudando] Starting frontend..."
 
-# Install deps if node_modules is empty (named volume, first boot)
 if [ ! -f "node_modules/.package-lock.json" ] && [ ! -f "node_modules/.modules.yaml" ]; then
     echo "[ayudando] Running npm install..."
-    npm install --legacy-peer-deps
+    if ! npm install --legacy-peer-deps; then
+        echo "[ayudando] Install failed (likely sharp native build). Retrying with --ignore-scripts..."
+        npm install --legacy-peer-deps --ignore-scripts
+    fi
 fi
 
 echo "[ayudando] Ionic/Angular dev server on :4200"
