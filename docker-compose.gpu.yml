@@ -1,0 +1,16 @@
+# GPU overlay — requires NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+# Usage:
+#   make up-gpu
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+#
+# Safe to ignore if no GPU available — just use the normal `make up`.
+
+services:
+  backend:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

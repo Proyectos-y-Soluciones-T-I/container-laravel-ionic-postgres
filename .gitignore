@@ -9,6 +9,9 @@ ayudando/
 .claude/
 .atl/
 
+# --- Override local (GPU, port overrides, etc.) — no va al repo ---------------
+docker-compose.override.yml
+
 # --- Volúmenes y datos generados por Docker -----------------------------------
 docker/data/
 *.log

@@ -6,6 +6,16 @@ services:
   postgres:
     image: postgres:14.22-alpine
     container_name: ayudando_postgres
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c work_mem=8MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c effective_cache_size=1GB
+      -c random_page_cost=1.1
+      -c log_min_duration_statement=200
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-ayudando}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -47,7 +57,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: ayudando_redis
-    command: redis-server --save "" --appendonly no
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
     networks:
       - ayudando_net
     restart: unless-stopped
@@ -136,7 +146,7 @@ services:
       - "${FRONTEND_PORT:-4200}:4200"
     environment:
       NODE_ENV: development
-      NODE_OPTIONS: --max_old_space_size=4096
+      NODE_OPTIONS: --max_old_space_size=1536
       # Speeds up npm install on repeated cold starts
       NPM_CONFIG_PREFER_OFFLINE: "true"
     networks:

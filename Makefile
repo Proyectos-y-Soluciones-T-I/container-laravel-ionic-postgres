@@ -5,10 +5,20 @@ VERSION        ?= latest
 BACKEND_IMAGE  = $(DOCKERHUB_USER)/ayudando-backend
 FRONTEND_IMAGE = $(DOCKERHUB_USER)/ayudando-frontend
 
-.PHONY: up down restart logs ps build shell-backend shell-frontend artisan db-import \
+.PHONY: up up-gpu up-no-gpu down restart logs ps build shell-backend shell-frontend artisan db-import \
         buildx-setup build-multi push-multi
 
+# docker-compose.override.yml is auto-merged by Docker Compose — no -f flags needed.
+# If it exists (GPU machine), GPU is active. If not, vanilla mode.
 up:
+	docker compose up -d
+
+up-gpu:
+	cp docker-compose.gpu.yml docker-compose.override.yml
+	docker compose up -d
+
+up-no-gpu:
+	rm -f docker-compose.override.yml
 	docker compose up -d
 
 down:
