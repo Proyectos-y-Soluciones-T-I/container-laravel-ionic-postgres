@@ -1,10 +1,8 @@
-# Docker Infrastructure
+# Ayudando — Docker Images
 
-Full-stack Docker environment for the **Ayudando** project.
+Docker infrastructure for the **Ayudando** project: Laravel 8 backend + Ionic/Angular 17 frontend running on PostgreSQL 14, Redis 7, and Nginx.
 
-- **Backend**: Laravel 8 via PHP 8.0-FPM + Nginx 1.25
-- **Frontend**: Ionic CLI 7 / Angular CLI 17 on Node 18
-- **Database**: PostgreSQL 14.22
+> Source repository: [github.com/ramirezDg/docker-li-container](https://github.com/ramirezDg/docker-li-container)
 
 ---
 
@@ -12,103 +10,249 @@ Full-stack Docker environment for the **Ayudando** project.
 
 | Image | Platforms | Description |
 |-------|-----------|-------------|
-| `youruser/ayudando-backend` | `linux/amd64` `linux/arm64` `linux/arm/v7` | PHP 8.0-FPM with Laravel extensions |
-| `youruser/ayudando-frontend` | `linux/amd64` `linux/arm64` | Node 18 + Ionic CLI 7 + Angular CLI 17 |
+| `your-dockerhub-user/ayudando-backend` | linux/amd64, linux/arm64, linux/arm/v7 | PHP 8.1-FPM + all Laravel extensions + JIT |
+| `your-dockerhub-user/ayudando-frontend` | linux/amd64, linux/arm64 | Node 18.16.1 + Ionic CLI 7 + Angular CLI 17 |
 
-> **Note**: `linux/arm/v7` is available for the backend only. Node 18 dropped official 32-bit ARM support.
+---
+
+## Stack
+
+| Service | Image | Role |
+|---------|-------|------|
+| `postgres` | postgres:14.22-alpine | Primary database |
+| `redis` | redis:7-alpine | Sessions + cache (in-memory) |
+| `backend` | ayudando-backend | Laravel 8 via PHP-FPM |
+| `nginx` | nginx:1.25-alpine | Reverse proxy → FPM :9000 |
+| `frontend` | ayudando-frontend | Angular/Ionic dev server |
+| `pgadmin` | dpage/pgadmin4:7.3 | Database admin UI |
 
 ---
 
 ## Quick Start
 
+### 1 — Clone the infrastructure repo
+
 ```bash
-# 1. Clone the infrastructure repo
-git clone https://github.com/youruser/docker-li-container.git
-cd docker-li-container
+git clone https://github.com/ramirezDg/docker-li-container ayudando-docker
+cd ayudando-docker
+```
 
-# 2. Clone the app source alongside (never committed here)
-git clone https://github.com/youruser/project.git
+### 2 — Place the Ayudando project source
 
-# 3. Configure secrets
+```bash
+git clone <ayudando-project-url> ayudando
+# Expected structure:
+#   ayudando/server/       <- Laravel 8
+#   ayudando/frontend/     <- Ionic/Angular 17
+#   ayudando/ayudando.tar  <- PostgreSQL dump
+```
+
+### 3 — Configure environment
+
+```bash
 cp .env.example .env
-# Fill in: POSTGRES_PASSWORD, PGADMIN_PASSWORD, APP_KEY, JWT_SECRET, MAIL_*
+# Edit .env — fill in POSTGRES_PASSWORD, APP_KEY, JWT_SECRET, MAIL_* credentials
+```
 
-# 4. Start
-docker compose up -d --build
+### 4 — Build and start
 
-# 5. Import database
+```bash
+# Without GPU:
+make build && make up
+
+# With NVIDIA GPU (requires NVIDIA Container Toolkit):
+make build && make up-gpu
+```
+
+### 5 — Import database
+
+```bash
 make db-import
 ```
 
----
+### 6 — Access
 
-## Services
-
-| Container | Port | Role |
-|-----------|------|------|
-| `ayudando_postgres` | 5432 | PostgreSQL 14 |
-| `ayudando_pgadmin` | 5050 | pgAdmin 7.3 web UI |
-| `ayudando_backend` | — | PHP-FPM (consumed by Nginx) |
-| `ayudando_nginx` | 8080 | Laravel API reverse proxy |
-| `ayudando_frontend` | 4200 | Angular dev server |
+| URL | Service |
+|-----|---------|
+| http://localhost:8080 | Laravel API (via Nginx) |
+| http://localhost:4200 | Angular/Ionic dev server |
+| http://localhost:5050 | pgAdmin |
 
 ---
 
-## Required Environment Variables
+## Backend Image — `ayudando-backend`
 
-Copy `.env.example` and fill in these values:
+**Base**: `php:8.1.17-fpm-alpine` (multi-stage — no build tools in final image)
 
-```dotenv
-# Database
-POSTGRES_PASSWORD=           # required
-POSTGRES_DB=ayudando
-POSTGRES_USER=postgres
+**PHP extensions included:**
+- `pdo`, `pdo_pgsql`, `pgsql` — PostgreSQL
+- `gd` — Image processing (freetype + libjpeg)
+- `zip`, `bcmath`, `intl`, `mbstring`, `exif`, `pcntl` — Laravel requirements
+- `opcache` — With JIT (trampoline mode) enabled
+- `redis` (phpredis) — Native Redis client for sessions/cache
 
-# pgAdmin
-PGADMIN_PASSWORD=            # required
+**Performance features:**
+- OPcache JIT enabled (`opcache.jit=trampoline`) — speeds up CPU-bound paths
+- `opcache.revalidate_freq=2` — avoids per-request `stat()` calls on bind mounts
+- Sessions and cache via Redis (eliminates Windows file I/O bottleneck)
+- PHP-FPM dynamic pool: 2 warm workers, scales to 10
+- Config and route cache pre-built on container start (~300ms -> ~30ms bootstrap)
+- 500 MB upload support (nginx + php.ini)
 
-# Laravel
-APP_KEY=                     # php artisan key:generate
-JWT_SECRET=                  # required
+**Memory limit:** 320 MB (configurable in `docker-compose.yml`)
 
-# Mail
-MAIL_HOST=
-MAIL_USERNAME=
-MAIL_PASSWORD=
+---
+
+## Frontend Image — `ayudando-frontend`
+
+**Base**: `node:18.16.1-alpine`
+
+**Tools included:**
+- Ionic CLI 7
+- Angular CLI 17
+- `npm` with `--legacy-peer-deps` support
+
+**Performance features:**
+- `node_modules` in a named Docker volume (avoids Windows bind-mount I/O for 50k+ files)
+- Angular cache (`.angular`) in a named volume — incremental builds persist across restarts
+- File change detection via polling (`--poll 1000`) for Windows/WSL2 compatibility
+- Node.js heap capped at 1 GB (sufficient for Angular 17 incremental builds)
+
+**Memory limit:** 2 GB (Angular full rebuild can spike; incremental stays under 512 MB)
+
+---
+
+## GPU Support (Optional)
+
+GPU acceleration is optional and non-breaking — the stack runs identically without it.
+
+**Requirements:**
+- NVIDIA GPU
+- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+- WSL2 with NVIDIA CUDA support (Windows) or native Linux with NVIDIA drivers >= 470
+
+**Enable GPU:**
+```bash
+make up-gpu
+# or: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+```
+
+**Disable GPU:**
+```bash
+make down-gpu && make up
+```
+
+**Verify GPU inside container:**
+```bash
+make gpu-check
+# or: docker exec ayudando_backend nvidia-smi
+```
+
+The GPU overlay (`docker-compose.gpu.yml`) adds NVIDIA device reservation to the backend service only. All memory limits from the base compose are preserved.
+
+---
+
+## Environment Variables
+
+### Required
+
+| Variable | Description |
+|----------|-------------|
+| `POSTGRES_PASSWORD` | PostgreSQL root password |
+| `PGADMIN_PASSWORD` | pgAdmin login password |
+| `APP_KEY` | Laravel encryption key (`php artisan key:generate --show`) |
+| `JWT_SECRET` | JWT signing secret (min 64 chars) |
+| `MAIL_HOST` | SMTP server hostname |
+| `MAIL_USERNAME` | SMTP auth user |
+| `MAIL_PASSWORD` | SMTP auth password |
+
+### Optional (with defaults)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `POSTGRES_DB` | `ayudando` | Database name |
+| `POSTGRES_USER` | `postgres` | Database user |
+| `POSTGRES_PORT` | `5432` | Host-mapped DB port |
+| `NGINX_PORT` | `8080` | Host-mapped API port |
+| `FRONTEND_PORT` | `4200` | Host-mapped frontend port |
+| `PGADMIN_PORT` | `5050` | Host-mapped pgAdmin port |
+| `APP_ENV` | `local` | Laravel environment |
+| `APP_DEBUG` | `true` | Laravel debug mode |
+
+---
+
+## Memory Budget (Idle)
+
+| Container | Limit | Typical Idle RSS |
+|-----------|-------|-----------------|
+| postgres | 384 MB | ~150-200 MB |
+| redis | 160 MB | ~5-10 MB |
+| backend | 320 MB | ~120-160 MB |
+| nginx | 64 MB | ~10-15 MB |
+| pgadmin | 256 MB | ~80-150 MB |
+| frontend | 2 GB | ~200-500 MB |
+
+Check live usage:
+```bash
+make mem-stats
+# or: docker stats --no-stream
 ```
 
 ---
 
-## Common Commands
+## Useful Make Targets
 
 ```bash
-make up              # start all services
-make down            # stop all services
-make logs            # follow logs
-make db-import       # import ayudando.tar dump
-make migrate         # run Laravel migrations
-make shell-backend   # sh into PHP container
-make shell-frontend  # sh into Node container
-make cache-clear     # clear Laravel caches
+make up             # start all services
+make up-gpu         # start with NVIDIA GPU
+make up-no-gpu      # start without GPU (cleans override)
+make down           # stop all services
+make down-gpu       # stop + remove GPU override
+make build          # rebuild images (no cache)
+make logs           # follow all logs
+make ps             # container status
+
+make shell-backend  # shell into PHP container
+make shell-frontend # shell into Node container
+make shell-db       # psql into PostgreSQL
+
+make db-import      # restore from ayudando/ayudando.tar
+make migrate        # php artisan migrate
+make fresh          # php artisan migrate:fresh --seed
+make cache-clear    # clear Laravel config/cache/routes
+make cache-warm     # pre-cache config + routes
+
+make gpu-check      # verify GPU access inside container
+make mem-stats      # memory + CPU snapshot per container
+make logs-slow      # show PostgreSQL queries > 200ms
 ```
 
 ---
 
-## Multi-Arch Build (local)
+## Building Multi-Arch Images
 
 ```bash
-# Build and push all images
-make build-multi DOCKERHUB_USER=youruser VERSION=1.0.0
+# Set your Docker Hub username
+export DOCKERHUB_USER=youruser
+
+# Build and push both images
+make build-multi DOCKERHUB_USER=$DOCKERHUB_USER
+
+# Or individually
+make build-backend-multi  DOCKERHUB_USER=$DOCKERHUB_USER VERSION=1.0.0
+make build-frontend-multi DOCKERHUB_USER=$DOCKERHUB_USER VERSION=1.0.0
 ```
+
+Platforms: `linux/amd64`, `linux/arm64` (both), `linux/arm/v7` (backend only).
 
 ---
 
-## Troubleshooting
+## Architecture Notes
 
-**Backend can't reach DB** — wait for postgres healthcheck: `docker compose ps`
-
-**pgAdmin can't connect** — use host `postgres`, port `5432` (internal service name, not `localhost`)
-
-**Frontend slow first start** — Angular compiles on first run (~60s). Subsequent restarts use the persistent `.angular` cache volume and are much faster.
-
-**Port conflict** — override in `.env`: `NGINX_PORT`, `FRONTEND_PORT`, `PGADMIN_PORT`, `POSTGRES_PORT`
+- **DB dump format**: `.tar` — import with `pg_restore`, not `psql`
+- **Sessions/Cache**: Redis (not file driver) — eliminates Windows bind-mount I/O bottleneck
+- **node_modules**: Named Docker volume — avoids WSL2 bind-mount performance degradation for 50k+ npm files
+- **PHP image**: Multi-stage build — build tools (gcc, make) not present in runtime image (~150 MB lighter)
+- **OPcache**: `revalidate_freq=2` — avoids per-request `stat()` on bind-mounted PHP files
+- **File uploads**: All limits set to 500 MB (nginx + php.ini + FastCGI buffers + 600s timeouts)
+- **Slow query log**: PostgreSQL logs any query taking > 200ms — `make logs-slow` to inspect

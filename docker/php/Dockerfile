@@ -1,11 +1,8 @@
-FROM php:8.1.17-fpm-alpine
+# ─── Stage 1: compile PHP extensions ─────────────────────────────────────────
+# Build tools (gcc, g++, make, autoconf) only needed here — NOT in final image.
+FROM php:8.1.17-fpm-alpine AS builder
 
 RUN apk add --no-cache \
-    git \
-    curl \
-    zip \
-    unzip \
-    bash \
     libpng-dev \
     libpq-dev \
     libzip-dev \
@@ -29,9 +26,30 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
         pcntl \
         opcache
 
-# phpredis — session y cache en Redis sin file I/O
 RUN pecl install redis \
     && docker-php-ext-enable redis
+
+# ─── Stage 2: runtime image (no build tools — ~150MB lighter) ─────────────────
+FROM php:8.1.17-fpm-alpine
+
+# Runtime shared libs only — no -dev, no compiler
+RUN apk add --no-cache \
+    git \
+    curl \
+    zip \
+    unzip \
+    bash \
+    libpng \
+    libpq \
+    libzip \
+    icu-libs \
+    oniguruma \
+    freetype \
+    libjpeg-turbo
+
+# Copy compiled .so files and their enablement ini files from builder
+COPY --from=builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
+COPY --from=builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 
 RUN curl -sS https://getcomposer.org/installer | php -- \
     --install-dir=/usr/local/bin \

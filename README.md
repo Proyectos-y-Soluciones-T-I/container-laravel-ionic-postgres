@@ -15,12 +15,14 @@ El código fuente del proyecto (`ayudando/`) se coloca localmente y **nunca se m
 4. [Variables de entorno](#variables-de-entorno)
 5. [Environment del frontend](#environment-del-frontend)
 6. [Levantar el entorno](#levantar-el-entorno)
-7. [Importar la base de datos](#importar-la-base-de-datos)
-8. [URLs de acceso](#urls-de-acceso)
-9. [Comandos del día a día](#comandos-del-día-a-día)
-10. [Flujo de arranque automático](#flujo-de-arranque-automático)
-11. [Soporte de archivos grandes](#soporte-de-archivos-grandes)
-12. [Troubleshooting](#troubleshooting)
+7. [Soporte GPU (opcional)](#soporte-gpu-opcional)
+8. [Importar la base de datos](#importar-la-base-de-datos)
+9. [URLs de acceso](#urls-de-acceso)
+10. [Comandos del día a día](#comandos-del-día-a-día)
+11. [Flujo de arranque automático](#flujo-de-arranque-automático)
+12. [Rendimiento y optimización](#rendimiento-y-optimización)
+13. [Soporte de archivos grandes](#soporte-de-archivos-grandes)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -28,11 +30,12 @@ El código fuente del proyecto (`ayudando/`) se coloca localmente y **nunca se m
 
 ```
 docker-li-container/          ← este repo
-├── docker-compose.yml        ← define los 5 servicios
+├── docker-compose.yml        ← define los 6 servicios
+├── docker-compose.gpu.yml    ← overlay GPU (opcional — ver sección GPU)
 ├── .env                      ← credenciales locales (NO commitear)
 ├── Makefile                  ← comandos rápidos
 ├── docker/
-│   ├── php/                  ← PHP 8.0-FPM + extensiones Laravel
+│   ├── php/                  ← PHP 8.1-FPM + extensiones Laravel + JIT
 │   ├── nginx/                ← reverse proxy + soporte archivos grandes
 │   └── frontend/             ← Node 18.16.1 + Ionic 7 + Angular 17
 └── ayudando/                 ← proyecto fuente (ignorado por git)
@@ -43,13 +46,14 @@ docker-li-container/          ← este repo
 
 ### Servicios y puertos
 
-| Contenedor          | Imagen                    | Puerto | Descripción                        |
-|---------------------|---------------------------|--------|------------------------------------|
-| `ayudando_postgres` | postgres:14.22-alpine     | 5432   | Base de datos PostgreSQL           |
-| `ayudando_pgadmin`  | dpage/pgadmin4:7.3        | 5050   | Administrador visual de la BD      |
-| `ayudando_backend`  | (build local) PHP 8.0-FPM | —      | Laravel 8 — expuesto via Nginx     |
-| `ayudando_nginx`    | nginx:1.25-alpine         | 8080   | Proxy HTTP → PHP-FPM en puerto 9000|
-| `ayudando_frontend` | (build local) Node 18     | 4200   | Ionic/Angular dev server           |
+| Contenedor          | Imagen                     | Puerto | Descripción                         |
+|---------------------|----------------------------|--------|-------------------------------------|
+| `ayudando_postgres` | postgres:14.22-alpine      | 5432   | Base de datos PostgreSQL            |
+| `ayudando_pgadmin`  | dpage/pgadmin4:7.3         | 5050   | Administrador visual de la BD       |
+| `ayudando_redis`    | redis:7-alpine             | —      | Cache + sesiones en memoria         |
+| `ayudando_backend`  | (build local) PHP 8.1-FPM  | —      | Laravel 8 — expuesto via Nginx      |
+| `ayudando_nginx`    | nginx:1.25-alpine          | 8080   | Proxy HTTP → PHP-FPM en puerto 9000 |
+| `ayudando_frontend` | (build local) Node 18      | 4200   | Ionic/Angular dev server            |
 
 Todos los servicios comparten la red interna `ayudando_net`. La comunicación entre servicios usa los nombres de contenedor (ej: el backend se conecta a postgres usando el host `postgres`, no `localhost`).
 
@@ -143,7 +147,7 @@ docker compose up -d
 
 La primera construcción tarda varios minutos porque:
 - Descarga imágenes base de Docker Hub
-- Instala extensiones PHP (pdo_pgsql, gd, zip, bcmath, intl, exif, opcache)
+- Compila extensiones PHP en stage separado (multi-stage build)
 - Instala Composer 2.5.8
 - Instala Ionic CLI 7 y Angular CLI 17
 
@@ -323,6 +327,75 @@ docker compose down
 
 ---
 
+## Soporte GPU (opcional)
+
+El entorno soporta aceleración GPU mediante [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html). La GPU es **completamente opcional** — el entorno funciona idéntico sin ella.
+
+### Requisitos para GPU
+
+- GPU NVIDIA compatible (probado con RTX 3050 Laptop)
+- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) instalado en el host
+- WSL2 con soporte NVIDIA (Windows) o Linux con drivers NVIDIA
+
+### Verificar que el host tiene soporte GPU
+
+```bash
+nvidia-smi
+```
+
+Debe mostrar la GPU disponible. Si falla, instalar los drivers NVIDIA y el Container Toolkit.
+
+### Levantar con GPU
+
+```bash
+# Con make:
+make up-gpu
+
+# Sin make:
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+```
+
+### Volver a modo sin GPU
+
+```bash
+# Con make (baja contenedores y elimina el override):
+make down-gpu
+make up
+
+# Sin make:
+docker compose down
+rm -f docker-compose.override.yml
+docker compose up -d
+```
+
+### Verificar que la GPU está activa dentro del contenedor
+
+```bash
+make gpu-check
+# equivalente a: docker exec ayudando_backend nvidia-smi
+```
+
+### Cómo funciona el overlay GPU
+
+El archivo `docker-compose.gpu.yml` es un overlay que Docker Compose fusiona sobre `docker-compose.yml`. Al ejecutar `make up-gpu`, se copia como `docker-compose.override.yml` — Docker Compose lo detecta y fusiona automáticamente.
+
+```yaml
+# docker-compose.gpu.yml
+services:
+  backend:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+```
+
+Los límites de memoria del compose base se respetan incluso con GPU activa.
+
+---
+
 ## Importar la base de datos
 
 El dump del proyecto está en `ayudando/ayudando.tar` (formato `pg_restore`, no SQL plano).
@@ -394,7 +467,10 @@ Los puertos pueden cambiarse en `.env` (variables `NGINX_PORT`, `FRONTEND_PORT`,
 
 ```bash
 make up              # levantar todos los servicios
+make up-gpu          # levantar con aceleración GPU (requiere NVIDIA Container Toolkit)
+make up-no-gpu       # levantar sin GPU (limpia el override si existía)
 make down            # bajar todos los servicios
+make down-gpu        # bajar + eliminar el override GPU
 make restart         # reiniciar todos los servicios
 make build           # reconstruir imágenes (sin caché)
 make logs            # ver logs en tiempo real
@@ -409,8 +485,14 @@ make db-import       # importar dump desde ayudando/ayudando.tar
 make migrate         # php artisan migrate
 make fresh           # php artisan migrate:fresh --seed
 make cache-clear     # limpiar config, cache y rutas de Laravel
+make cache-warm      # pre-cachear config y rutas (más rápido en producción)
 
 make artisan cmd="queue:work"   # cualquier comando artisan
+
+# ─── Diagnóstico ──────────────────────────────────────────────────────────────
+make gpu-check       # verificar que la GPU es accesible dentro del contenedor
+make mem-stats       # consumo de memoria y CPU por contenedor (snapshot)
+make logs-slow       # consultas PostgreSQL que tardaron más de 200ms
 ```
 
 ### Sin make
@@ -436,6 +518,9 @@ docker exec ayudando_backend php artisan config:clear && \
   docker exec ayudando_backend php artisan route:clear
 
 docker exec ayudando_backend php artisan <comando>
+
+# Ver consumo de memoria en tiempo real:
+docker stats
 ```
 
 ---
@@ -448,8 +533,10 @@ Al iniciar el contenedor, `docker/php/entrypoint.sh` ejecuta automáticamente:
 
 1. `composer install` — si `vendor/` no existe
 2. `php artisan storage:link` — si el symlink no existe
-3. `chmod -R 775 storage bootstrap/cache`
-4. Inicia `php-fpm`
+3. `chmod -R 777 storage bootstrap/cache`
+4. `php artisan config:cache` — pre-cachea la configuración (reduce bootstrap de ~300ms a ~30ms)
+5. `php artisan route:cache` — pre-cachea las rutas
+6. Inicia `php-fpm`
 
 No es necesario correr estos comandos manualmente en el primer arranque.
 
@@ -465,6 +552,73 @@ Al iniciar el contenedor, `docker/frontend/entrypoint.sh` ejecuta:
 
 ---
 
+## Rendimiento y optimización
+
+El entorno implementa múltiples optimizaciones para minimizar la latencia en Windows/WSL2.
+
+### ¿Por qué el entorno puede ser lento en Windows?
+
+El cuello de botella principal en Windows + WSL2 es el **cruce de frontera host ↔ WSL2** para operaciones de archivo. Cada `stat()`, `fread()` o `fwrite()` sobre una carpeta bind-mounted pasa por ese cruce. En PHP sin OPcache, esto puede sumar miles de llamadas por request.
+
+### Optimizaciones aplicadas
+
+| Área | Optimización | Impacto |
+|------|-------------|---------|
+| **PHP OPcache** | `revalidate_freq=2` en lugar de 0 | Elimina `stat()` por-request. Mayor impacto. |
+| **PHP JIT** | `opcache.jit=trampoline` | Acelera rutas CPU-bound (validación, colecciones) |
+| **Sesiones/Cache** | Redis en lugar de file driver | Elimina I/O de Windows para sesiones |
+| **PHP-FPM pool** | `start_servers=2`, `max_children=10` | Workers listos sin overhead innecesario |
+| **PostgreSQL** | Tuning de buffers y WAL | Reduce I/O de disco para queries frecuentes |
+| **Nginx** | `open_file_cache`, gzip, keepalive | Reduce overhead para assets estáticos |
+| **Angular** | Volume nombrado para `node_modules` | Evita bind-mount para miles de archivos npm |
+| **Imagen PHP** | Multi-stage Dockerfile | Imagen ~150MB más liviana (sin gcc/make) |
+
+### Presupuesto de memoria en reposo
+
+| Contenedor  | Límite | RSS típico en idle |
+|-------------|--------|-------------------|
+| postgres    | 384 MB | ~150-200 MB       |
+| redis       | 160 MB | ~5-10 MB          |
+| backend     | 320 MB | ~120-160 MB       |
+| nginx       | 64 MB  | ~10-15 MB         |
+| pgadmin     | 256 MB | ~80-150 MB        |
+| frontend    | 2 GB   | ~200-500 MB       |
+
+Ver consumo actual:
+```bash
+make mem-stats
+```
+
+### Identificar consultas lentas
+
+PostgreSQL registra automáticamente las queries que tardan más de 200ms:
+
+```bash
+make logs-slow
+```
+
+Si aparecen queries frecuentes lentas, son candidatas a agregar índices en la aplicación.
+
+### OPcache — verificar estado
+
+```bash
+docker exec ayudando_backend php -r "print_r(opcache_get_status());"
+```
+
+El campo `opcache_statistics.num_cached_scripts` debe crecer con el uso. Si `cache_full` es `true`, aumentar `opcache.memory_consumption` en `docker/php/php.ini`.
+
+### Ajustar límites de memoria
+
+Los límites de memoria de cada contenedor están en `docker-compose.yml` bajo `deploy.resources.limits.memory`. Ajustar según el hardware disponible y aplicar con:
+
+```bash
+docker compose up -d
+```
+
+No requiere rebuild.
+
+---
+
 ## Soporte de archivos grandes
 
 El entorno soporta carga y descarga de archivos hasta 500 MB.
@@ -474,7 +628,7 @@ El entorno soporta carga y descarga de archivos hasta 500 MB.
 | `client_max_body_size` | 500 MB | `docker/nginx/nginx.conf`      |
 | `upload_max_filesize`  | 500 MB | `docker/php/php.ini`           |
 | `post_max_size`        | 500 MB | `docker/php/php.ini`           |
-| `memory_limit`         | 512 MB | `docker/php/php.ini`           |
+| `memory_limit`         | 256 MB | `docker/php/php.ini`           |
 | `max_execution_time`   | 600 s  | `docker/php/php.ini`           |
 | `fastcgi_read_timeout` | 600 s  | `docker/nginx/nginx.conf`      |
 
@@ -542,16 +696,7 @@ docker exec -it ayudando_backend sh
 composer install --ignore-platform-reqs -vvv
 ```
 
-Si hay conflictos con `tymon/jwt-auth` y PHP 8.0, cambiar la imagen base en `docker/php/Dockerfile`:
-
-```dockerfile
-# De:
-FROM php:8.0-fpm-alpine
-# A:
-FROM php:7.4-fpm-alpine
-```
-
-Luego reconstruir: `docker compose build --no-cache backend && docker compose up -d`
+Si hay conflictos con `tymon/jwt-auth` y PHP 8.1, verificar que la versión de `tymon/jwt-auth` soporta PHP 8.1 (requerir `^2.0`).
 
 ### pgAdmin no puede conectar a PostgreSQL
 
@@ -581,3 +726,23 @@ docker compose config    # muestra la configuración con variables resueltas
 ```
 
 Si las variables aparecen vacías, el `.env` no existe o tiene formato incorrecto.
+
+### Un contenedor supera el límite de memoria
+
+```bash
+make mem-stats
+```
+
+Si un contenedor está cerca del 100%, aumentar el límite en `docker-compose.yml` → `deploy.resources.limits.memory` y aplicar con `docker compose up -d`.
+
+### GPU no detectada dentro del contenedor
+
+```bash
+make gpu-check
+```
+
+Si falla con "nvidia-smi not found" o "no devices":
+1. Verificar que `nvidia-smi` funciona en el host
+2. Verificar que NVIDIA Container Toolkit está instalado
+3. Verificar que levantaron con `make up-gpu` (no `make up`)
+4. En Windows, verificar que WSL2 tiene soporte CUDA (requiere driver NVIDIA ≥ 470)

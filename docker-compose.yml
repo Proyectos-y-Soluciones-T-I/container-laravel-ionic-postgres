@@ -27,6 +27,14 @@ services:
     networks:
       - ayudando_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ayudando}"]
       interval: 10s
@@ -52,6 +60,14 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ─── Redis (session + cache en memoria — elimina file I/O de Windows) ────────
   redis:
@@ -61,13 +77,21 @@ services:
     networks:
       - ayudando_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 160M
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "2"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
 
-  # ─── Laravel Backend (PHP 8.0-FPM) ───────────────────────────────────────────
+  # ─── Laravel Backend (PHP 8.1-FPM) ───────────────────────────────────────────
   backend:
     build:
       context: .
@@ -115,6 +139,14 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ─── Nginx (reverse proxy + static files) ────────────────────────────────────
   nginx:
@@ -131,6 +163,14 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ─── Ionic / Angular 17 (dev server) ─────────────────────────────────────────
   frontend:
@@ -146,12 +186,21 @@ services:
       - "${FRONTEND_PORT:-4200}:4200"
     environment:
       NODE_ENV: development
-      NODE_OPTIONS: --max_old_space_size=1536
+      # 1024MB — enough for Angular 17 incremental builds; was 1536 (overkill for dev).
+      NODE_OPTIONS: --max_old_space_size=1024
       # Speeds up npm install on repeated cold starts
       NPM_CONFIG_PREFER_OFFLINE: "true"
     networks:
       - ayudando_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   ayudando_net:

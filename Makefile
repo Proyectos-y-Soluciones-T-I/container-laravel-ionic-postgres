@@ -5,8 +5,11 @@ VERSION        ?= latest
 BACKEND_IMAGE  = $(DOCKERHUB_USER)/ayudando-backend
 FRONTEND_IMAGE = $(DOCKERHUB_USER)/ayudando-frontend
 
-.PHONY: up up-gpu up-no-gpu down restart logs ps build shell-backend shell-frontend artisan db-import \
-        buildx-setup build-multi push-multi
+.PHONY: up up-gpu up-no-gpu down down-gpu restart logs ps build \
+        shell-backend shell-frontend shell-db artisan \
+        db-import migrate fresh cache-clear cache-warm \
+        gpu-check mem-stats logs-slow \
+        buildx-setup build-backend-multi build-frontend-multi build-multi
 
 # docker-compose.override.yml is auto-merged by Docker Compose — no -f flags needed.
 # If it exists (GPU machine), GPU is active. If not, vanilla mode.
@@ -23,6 +26,10 @@ up-no-gpu:
 
 down:
 	docker compose down
+
+down-gpu:
+	docker compose down
+	rm -f docker-compose.override.yml
 
 restart:
 	docker compose restart
@@ -67,6 +74,20 @@ cache-clear:
 cache-warm:
 	docker exec ayudando_backend php artisan config:cache
 	docker exec ayudando_backend php artisan route:cache
+
+# ─── Diagnóstico de rendimiento y GPU ────────────────────────────────────────
+
+# Verify GPU is accessible inside the backend container (requires make up-gpu first)
+gpu-check:
+	docker exec ayudando_backend nvidia-smi
+
+# Memory usage per container — shows current RSS and % of limit
+mem-stats:
+	docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.CPUPerc}}"
+
+# Show slow queries logged by PostgreSQL (queries taking >200ms)
+logs-slow:
+	docker logs ayudando_postgres 2>&1 | grep "duration:"
 
 # ─── Multi-arch build (Docker Hub) ───────────────────────────────────────────
 buildx-setup:
