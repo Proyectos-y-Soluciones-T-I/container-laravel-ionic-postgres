@@ -43,6 +43,20 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # ─── Redis (session + cache en memoria — elimina file I/O de Windows) ────────
+  redis:
+    image: redis:7-alpine
+    container_name: ayudando_redis
+    command: redis-server --save "" --appendonly no
+    networks:
+      - ayudando_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   # ─── Laravel Backend (PHP 8.0-FPM) ───────────────────────────────────────────
   backend:
     build:
@@ -66,10 +80,14 @@ services:
       DB_USERNAME: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       BROADCAST_DRIVER: log
-      CACHE_DRIVER: file
+      # Redis drivers — eliminan el file I/O de Windows que es la causa de requests lentos
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
       QUEUE_CONNECTION: sync
-      SESSION_DRIVER: file
       SESSION_LIFETIME: 120
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_CLIENT: phpredis
       MAIL_MAILER: smtp
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT:-465}
@@ -83,6 +101,8 @@ services:
       - ayudando_net
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
 

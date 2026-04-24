@@ -54,6 +54,10 @@ cache-clear:
 	docker exec ayudando_backend php artisan cache:clear
 	docker exec ayudando_backend php artisan route:clear
 
+cache-warm:
+	docker exec ayudando_backend php artisan config:cache
+	docker exec ayudando_backend php artisan route:cache
+
 # ─── Multi-arch build (Docker Hub) ───────────────────────────────────────────
 buildx-setup:
 	docker buildx create --name ayudando-builder --use --bootstrap 2>/dev/null || \
