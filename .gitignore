@@ -5,7 +5,11 @@ ayudando/
 .env
 !.env.example
 
-# --- Vol�menes y datos generados por Docker -----------------------------------
+# --- Herramientas internas (no deben ir al repo público) ---------------------
+.claude/
+.atl/
+
+# --- Volúmenes y datos generados por Docker -----------------------------------
 docker/data/
 *.log
 

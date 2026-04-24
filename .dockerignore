@@ -1,8 +1,22 @@
 # Never send these to Docker daemon
-ayudando/server/vendor
-ayudando/server/node_modules
-ayudando/frontend/node_modules
-ayudando/frontend/.angular
+
+# Source deps (large, rebuilt in container)
+ayudando/server/vendor/
+ayudando/server/node_modules/
+ayudando/frontend/node_modules/
+ayudando/frontend/.angular/
 ayudando/**/*.sql
-.git
+ayudando/**/*.tar
+
+# Git and secrets
+.git/
 .env
+
+# Internal tooling (never needed inside image)
+.claude/
+.atl/
+.github/
+
+# Docs and CI config
+*.md
+Makefile
