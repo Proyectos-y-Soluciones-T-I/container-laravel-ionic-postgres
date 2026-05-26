@@ -100,11 +100,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ secrets.DOCKERHUB_USERNAME }}/ayudando-backend
-          readme-filepath: ./DOCKER_HUB_README.md
+          readme-filepath: ./README.md
 
       - uses: peter-evans/dockerhub-description@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ secrets.DOCKERHUB_USERNAME }}/container-laravel-ionic-postgres
-          readme-filepath: ./DOCKER_HUB.md
+          readme-filepath: ./README.md

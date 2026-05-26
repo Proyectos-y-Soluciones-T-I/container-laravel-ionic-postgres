@@ -186,8 +186,8 @@ services:
       - "${FRONTEND_PORT:-4200}:4200"
     environment:
       NODE_ENV: development
-      # 1024MB — enough for Angular 17 incremental builds; was 1536 (overkill for dev).
-      NODE_OPTIONS: --max_old_space_size=1024
+      # 3072MB — required for full initial build with all Cordova/Capacitor packages.
+      NODE_OPTIONS: --max_old_space_size=3072
       # Speeds up npm install on repeated cold starts
       NPM_CONFIG_PREFER_OFFLINE: "true"
     networks:
@@ -196,7 +196,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 4G
     logging:
       options:
         max-size: "10m"
