@@ -39,4 +39,13 @@ php artisan config:cache 2>/dev/null || true
 php artisan route:cache  2>/dev/null || true
 
 echo "[ayudando] PHP-FPM ready on :9000"
+
+# Queue worker — runs in background, restarts on failure
+php artisan queue:work \
+    --timeout=300 \
+    --memory=900 \
+    --tries=1 \
+    --sleep=3 \
+    &
+
 exec php-fpm -R
