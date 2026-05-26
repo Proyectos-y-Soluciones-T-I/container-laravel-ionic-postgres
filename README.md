@@ -17,6 +17,7 @@ El código fuente del proyecto (`ayudando/`) se coloca localmente y **nunca se m
 6. [Levantar el entorno](#levantar-el-entorno)
 7. [Soporte GPU (opcional)](#soporte-gpu-opcional)
 8. [Importar la base de datos](#importar-la-base-de-datos)
+   - [Conectar pgAdmin a PostgreSQL](#conectar-pgadmin-a-postgresql)
 9. [URLs de acceso](#urls-de-acceso)
 10. [Comandos del día a día](#comandos-del-día-a-día)
 11. [Flujo de arranque automático](#flujo-de-arranque-automático)
@@ -432,19 +433,54 @@ make db-import            # o el comando sin make
 
 ### Conectar pgAdmin a PostgreSQL
 
-1. Abrir `http://localhost:5050`
-2. Login con `PGADMIN_EMAIL` y `PGADMIN_PASSWORD` del `.env`
-3. Click derecho en **Servers** → **Register** → **Server**
-4. Pestaña **General**: poner cualquier nombre (ej: `Ayudando Local`)
-5. Pestaña **Connection**:
+#### 1. Ingresar a pgAdmin
 
-| Campo    | Valor                                |
-|----------|--------------------------------------|
-| Host     | `postgres` (nombre del servicio Docker, NO localhost) |
-| Port     | `5432`                               |
-| Database | valor de `POSTGRES_DB` en el `.env`  |
-| Username | valor de `POSTGRES_USER` en el `.env`|
-| Password | valor de `POSTGRES_PASSWORD`         |
+Abrir `http://localhost:5050` e ingresar con las credenciales definidas en el `.env`:
+
+- **Email**: valor de `PGADMIN_EMAIL`
+- **Password**: valor de `PGADMIN_PASSWORD`
+
+#### 2. Registrar el servidor
+
+1. En el panel izquierdo, click derecho sobre **Servers** → **Register** → **Server...**
+2. En la pestaña **General**:
+   - **Name**: cualquier nombre descriptivo, por ejemplo `Ayudando Local`
+3. En la pestaña **Connection**:
+
+| Campo                  | Valor                                                        |
+|------------------------|--------------------------------------------------------------|
+| Host name/address      | `postgres` — nombre del servicio Docker, **no** `localhost`  |
+| Port                   | `5432`                                                       |
+| Maintenance database   | valor de `POSTGRES_DB` del `.env` (por defecto: `ayudando`)  |
+| Username               | valor de `POSTGRES_USER` del `.env` (por defecto: `postgres`)|
+| Password               | valor de `POSTGRES_PASSWORD` del `.env`                      |
+| Save password          | activar para no ingresar la contraseña cada vez              |
+
+4. Click **Save**.
+
+Si la conexión es exitosa, el servidor aparece en el panel izquierdo con el ícono de elefante.
+
+> **Por qué `postgres` y no `localhost`**: pgAdmin corre dentro de la red Docker `ayudando_net`. Dentro de esa red, el servicio de base de datos se resuelve por su nombre de servicio (`postgres`), no por `localhost` (que apuntaría al propio contenedor de pgAdmin).
+
+#### 3. Crear la base de datos manualmente (solo si no existe)
+
+Si el dump aún no fue importado y la base `ayudando` no existe:
+
+1. Click derecho en el servidor recién registrado → **Create** → **Database...**
+2. En el campo **Database**: ingresar el valor de `POSTGRES_DB` del `.env` (por defecto: `ayudando`)
+3. En **Owner**: seleccionar el valor de `POSTGRES_USER` (por defecto: `postgres`)
+4. Click **Save**.
+
+> En el flujo normal esto no es necesario: PostgreSQL crea la base automáticamente al iniciar el contenedor usando la variable `POSTGRES_DB`. Solo crear manualmente si se eliminó la base o hubo un error de inicialización.
+
+#### 4. Verificar tablas después de importar el dump
+
+Después de correr `make db-import`:
+
+1. Expandir el servidor → **Databases** → `ayudando` → **Schemas** → `public` → **Tables**
+2. Deben aparecer las tablas del proyecto
+
+Si la lista está vacía, el dump no se importó correctamente. Ver la sección [Troubleshooting](#troubleshooting).
 
 ---
 
