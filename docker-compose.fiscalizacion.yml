@@ -10,12 +10,17 @@ services:
   # ─── PostgreSQL port override ─────────────────────────────────────────────────
   postgres:
     ports:
-      - "5434:5432"
+      - "${FISCALIZACION_POSTGRES_PORT:-5434}:5432"
+    environment:
+      POSTGRES_PASSWORD: ${FISCALIZACION_POSTGRES_PASSWORD}
+      POSTGRES_DB: fiscalizacion
 
   # ─── pgAdmin port override ───────────────────────────────────────────────────
   pgadmin:
     ports:
-      - "5052:80"
+      - "${FISCALIZACION_PGADMIN_PORT:-5052}:80"
+    environment:
+      PGADMIN_DEFAULT_PASSWORD: ${FISCALIZACION_PGADMIN_PASSWORD}
 
   # ─── Laravel Backend (PHP 8.1-FPM) ───────────────────────────────────────────
   backend:
@@ -31,15 +36,15 @@ services:
       APP_NAME: Fiscalizacion
       PROJECT: ${PROJECT}
       APP_ENV: ${APP_ENV:-local}
-      APP_KEY: ${APP_KEY}
+      APP_KEY: ${FISCALIZACION_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-true}
       APP_URL: ${APP_URL:-http://localhost:8082}
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: ${POSTGRES_DB:-fiscalizacion}
+      DB_DATABASE: fiscalizacion
       DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${FISCALIZACION_POSTGRES_PASSWORD}
       BROADCAST_DRIVER: log
       CACHE_DRIVER: redis
       SESSION_DRIVER: redis
@@ -49,14 +54,14 @@ services:
       REDIS_PORT: 6379
       REDIS_CLIENT: phpredis
       MAIL_MAILER: smtp
-      MAIL_HOST: ${MAIL_HOST}
+      MAIL_HOST: ${FISCALIZACION_MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT:-465}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_USERNAME: ${FISCALIZACION_MAIL_USERNAME}
+      MAIL_PASSWORD: ${FISCALIZACION_MAIL_PASSWORD}
       MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
-      MAIL_FROM_ADDRESS: ${MAIL_USERNAME}
+      MAIL_FROM_ADDRESS: ${FISCALIZACION_MAIL_USERNAME}
       MAIL_FROM_NAME: Fiscalizacion
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${FISCALIZACION_JWT_SECRET}
     networks:
       - ${PROJECT}_net
     depends_on:
@@ -79,7 +84,7 @@ services:
     image: nginx:1.25-alpine
     container_name: ${PROJECT}_nginx
     ports:
-      - "8082:80"
+      - "${FISCALIZACION_NGINX_PORT:-8082}:80"
     volumes:
       - ./src/${PROJECT}/server:/var/www/html
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
@@ -109,8 +114,9 @@ services:
       - frontend_node_modules:/app/node_modules
       - frontend_angular_cache:/app/.angular
     ports:
-      - "4202:4200"
+      - "${FISCALIZACION_FRONTEND_PORT:-4202}:4200"
     environment:
+      PROJECT: ${PROJECT}
       NODE_ENV: development
       NODE_OPTIONS: --max_old_space_size=3072
       NPM_CONFIG_PREFER_OFFLINE: "true"
