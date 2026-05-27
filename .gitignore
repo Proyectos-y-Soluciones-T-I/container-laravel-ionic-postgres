@@ -1,5 +1,5 @@
-# --- Proyecto fuente (repo separado) -----------------------------------------
-ayudando/
+# --- Fuente de proyectos (repos separados) ------------------------------------
+src/
 
 # --- Variables de entorno (credenciales) -------------------------------------
 .env
