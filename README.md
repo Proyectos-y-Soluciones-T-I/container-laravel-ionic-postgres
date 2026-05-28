@@ -1,80 +1,105 @@
 # Infraestructura Docker Multi-Proyecto
 
-Entorno Docker para múltiples proyectos Laravel 8 + Ionic/Angular 17 + PostgreSQL 14.
-Un solo repositorio de infraestructura que sirve a **tres proyectos**: Ayudando, Emergencias y Fiscalización.
+Entorno Docker para **Ayudando**, **Emergencias** y **Fiscalización** — proyectos Laravel 8 + Ionic/Angular 17 + PostgreSQL 14.
 
-> **Regla fundamental**: todo cambio de infraestructura va en `docker/` o en la raíz de este repo.
-> El código fuente de cada proyecto vive en `src/<proyecto>/` y **nunca se modifica desde aquí**.
+Un solo repositorio de infraestructura. El código fuente de cada proyecto vive en `src/<proyecto>/` y **nunca se modifica desde aquí**.
 
 ---
 
 ## Índice
 
 1. [¿Qué es este repositorio?](#qué-es-este-repositorio)
-2. [Estructura del proyecto](#estructura-del-proyecto)
-3. [Requisitos previos](#requisitos-previos)
-4. [Configuración inicial (primera vez)](#configuración-inicial-primera-vez)
-5. [Comandos Docker Compose (forma directa)](#comandos-docker-compose-forma-directa)
-6. [Comandos Make (forma corta)](#comandos-make-forma-corta)
-7. [Variables de entorno](#variables-de-entorno)
-8. [Puertos por proyecto](#puertos-por-proyecto)
-9. [Dashboard](#dashboard)
-10. [Agregar un nuevo proyecto](#agregar-un-nuevo-proyecto)
-11. [Solución de problemas](#solución-de-problemas)
-12. [Arquitectura](#arquitectura)
+2. [Arquitectura](#arquitectura)
+3. [Estructura de archivos](#estructura-de-archivos)
+4. [Requisitos previos](#requisitos-previos)
+5. [Configuración inicial](#configuración-inicial)
+6. [Levantar el entorno](#levantar-el-entorno)
+7. [Dashboard](#dashboard)
+8. [Comandos Make](#comandos-make)
+9. [Variables de entorno](#variables-de-entorno)
+10. [Puertos](#puertos)
+11. [Agregar un nuevo proyecto](#agregar-un-nuevo-proyecto)
+12. [Solución de problemas](#solución-de-problemas)
 
 ---
 
 ## ¿Qué es este repositorio?
 
-Este repositorio contiene **solo la infraestructura Docker** compartida por varios proyectos de Laravel + Ionic/Angular.
+Infraestructura Docker compartida para múltiples proyectos. Cada proyecto es independiente y usa los mismos servicios base: PHP-FPM, Nginx, Node, Redis. La base de datos y pgAdmin son **compartidos** entre todos.
 
-| Proyecto | Backend | Frontend | Base de datos |
-|----------|---------|----------|---------------|
-| **Ayudando** | Laravel 8 | Ionic 7 / Angular 17 | PostgreSQL 14 |
-| **Emergencias** | Laravel 8 | Ionic 7 / Angular 17 | PostgreSQL 14 |
-| **Fiscalización** | Laravel 8 | Ionic 7 / Angular 17 | PostgreSQL 14 |
+| Proyecto | Backend | Frontend | Puerto API | Puerto UI |
+|---|---|---|---|---|
+| **Ayudando** | Laravel 8 | Ionic / Angular 17 | 8080 | 4200 |
+| **Emergencias** | Laravel 8 | Ionic / Angular 17 | 8081 | 4201 |
+| **Fiscalización** | Laravel 8 | Ionic / Angular 17 | 8082 | 4202 |
 
-Los tres proyectos comparten la misma arquitectura de servicios (PostgreSQL, pgAdmin, Redis, PHP-FPM, Nginx, Node) pero se ejecutan de forma **independiente** usando un patrón de `docker-compose.base.yml` + `docker-compose.<proyecto>.yml`.
-
-Puedes ejecutar uno, dos o los tres proyectos simultáneamente sin conflictos de puertos.
+> Solo se usa **un proyecto a la vez**. La infraestructura compartida (postgres, pgAdmin, dashboard) corre siempre.
 
 ---
 
-## Estructura del proyecto
+## Arquitectura
 
 ```
-docker-li-container/
-├── .env.example                ← Variables de entorno con prefijos por proyecto
-├── .env                        ← Creado localmente desde .env.example (NO se commitea)
-├── .gitignore
-├── Makefile                    ← Comandos rápidos con make
-├── README.md                   ← Este archivo
-├── docker-compose.base.yml     ← Servicios base compartidos (postgres, pgadmin, redis)
-├── docker-compose.ayudando.yml ← Override específico para Ayudando
-├── docker-compose.emergencias.yml
-├── docker-compose.fiscalizacion.yml
-├── docker-compose.gpu.yml      ← Overlay GPU opcional
-├── openspec/                   ← Documentación SDD de cambios
+┌─────────────────────────────────────────────────────┐
+│  docker-compose.shared.yml  (siempre activo)        │
+│                                                     │
+│  shared_postgres :5432   shared_pgadmin :5050       │
+│  shared_dashboard :8090                             │
+└─────────────────────────────────────────────────────┘
+          ↑ shared_net (red Docker interna)
+┌─────────────────────────────────────────────────────┐
+│  docker-compose.<proyecto>.yml  (uno a la vez)      │
+│                                                     │
+│  <proyecto>_nginx    <proyecto>_backend             │
+│  <proyecto>_frontend <proyecto>_redis               │
+└─────────────────────────────────────────────────────┘
+```
+
+**Dos capas:**
+
+- **Shared** (`docker-compose.shared.yml`): PostgreSQL, pgAdmin y el Dashboard. Se levanta una sola vez y nunca se baja salvo que quieras resetear la DB.
+- **Por proyecto** (`docker-compose.<proyecto>.yml`): backend PHP, Nginx, frontend Node y Redis. Se levanta/baja según en qué proyecto se está trabajando.
+
+Los proyectos se conectan a la base de datos compartida a través de la red `shared_net`.
+
+---
+
+## Estructura de archivos
+
+```
+container-laravel-ionic-postgres/
+├── .env.example                      ← Variables con prefijos por proyecto
+├── .env                              ← Creado localmente desde .env.example (no commitear)
+├── .gitattributes                    ← Normalización LF para todo el repo
+├── Makefile                          ← Comandos rápidos
+│
+├── docker-compose.shared.yml         ← Infraestructura compartida (postgres, pgadmin, dashboard)
+├── docker-compose.ayudando.yml       ← Servicios del proyecto Ayudando
+├── docker-compose.emergencias.yml    ← Servicios del proyecto Emergencias
+├── docker-compose.fiscalizacion.yml  ← Servicios del proyecto Fiscalización
+├── docker-compose.gpu.yml            ← Overlay GPU opcional
+│
 ├── docker/
 │   ├── php/
-│   │   ├── Dockerfile          ← PHP 8.1-FPM multi-stage con extensiones Laravel
-│   │   ├── entrypoint.sh       ← Arranque automático (composer, cache, queue worker)
-│   │   ├── php.ini             ← Configuración PHP (upload 500MB, OPcache, JIT)
-│   │   └── zz-docker-user.conf ← Permisos para bind-mount en Windows
+│   │   ├── Dockerfile                ← PHP 8.1-FPM con extensiones Laravel
+│   │   ├── entrypoint.sh             ← Arranca composer, artisan y queue worker
+│   │   ├── php.ini                   ← Upload 500MB, OPcache, JIT
+│   │   └── zz-docker-user.conf       ← Permisos para bind-mount en Windows
 │   ├── nginx/
-│   │   ├── nginx.conf          ← Configuración global (timeouts 600s, body 500MB)
-│   │   └── default.conf        ← Virtual host que proxea a PHP-FPM :9000
+│   │   ├── nginx.conf                ← Timeouts 600s, body 500MB
+│   │   └── default.conf              ← Proxy a PHP-FPM :9000
 │   ├── frontend/
-│   │   ├── Dockerfile          ← Node 18.16.1 + Ionic CLI 7 + Angular CLI 17
-│   │   └── entrypoint.sh       ← npm install automático + ng serve --poll 1000
+│   │   ├── Dockerfile                ← Node 18 + Ionic CLI 7 + Angular CLI 17
+│   │   └── entrypoint.sh             ← npm install + ng serve --poll 1000
 │   └── dashboard/
-│       └── index.html          ← Panel web con links a todos los proyectos
-└── src/                        ← Código fuente de los proyectos (ignorado por git)
+│       ├── index.html                ← Dashboard con health checks en tiempo real
+│       └── nginx.conf                ← Nginx del dashboard + proxies de health check
+│
+└── src/                              ← Código fuente (ignorado por git)
     ├── ayudando/
-    │   ├── server/             ← Laravel (backend)
-    │   ├── frontend/           ← Ionic/Angular (frontend)
-    │   └── ayudando.tar        ← Dump de base de datos
+    │   ├── server/                   ← Laravel (backend)
+    │   ├── frontend/                 ← Ionic/Angular
+    │   └── ayudando.tar              ← Dump de base de datos
     ├── emergencias/
     │   ├── server/
     │   ├── frontend/
@@ -91,10 +116,8 @@ docker-li-container/
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) ≥ 4.x (WSL2 habilitado en Windows)
 - Git
-- `make` (opcional pero recomendado — disponible con Git for Windows, Chocolatey o WSL)
-- 8 GB de RAM recomendados (6 GB mínimo)
-
-Verificar instalación:
+- `make` (recomendado — incluido en Git for Windows, Chocolatey o WSL)
+- 8 GB RAM recomendados (6 GB mínimo)
 
 ```bash
 docker --version
@@ -103,23 +126,21 @@ docker compose version
 
 ---
 
-## Configuración inicial (primera vez)
+## Configuración inicial
 
-### Paso 1 — Clonar este repositorio
+### 1. Clonar el repo
 
 ```bash
-git clone <url-de-este-repo> docker-li-container
-cd docker-li-container
+git clone <url-de-este-repo>
+cd container-laravel-ionic-postgres
 ```
 
-### Paso 2 — Crear `src/` y clonar los proyectos
+### 2. Clonar los proyectos en `src/`
 
 ```bash
 mkdir src
-
-# Clonar cada proyecto dentro de src/
-git clone <url-ayudando> src/ayudando
-git clone <url-emergencias> src/emergencias
+git clone <url-ayudando>      src/ayudando
+git clone <url-emergencias>   src/emergencias
 git clone <url-fiscalizacion> src/fiscalizacion
 ```
 
@@ -127,340 +148,247 @@ Cada proyecto debe tener esta estructura:
 
 ```
 src/<proyecto>/
-├── server/          ← Laravel (backend)
-├── frontend/        ← Ionic/Angular (frontend)
-└── <proyecto>.tar   ← Dump de la base de datos
+├── server/        ← Laravel (backend)
+├── frontend/      ← Ionic/Angular (frontend)
+└── <proyecto>.tar ← Dump de base de datos (formato pg_restore)
 ```
 
-> Los dumps deben llamarse exactamente como el proyecto (ej: `ayudando.tar`, `emergencias.tar`).
-
-### Paso 3 — Crear el archivo de variables de entorno
+### 3. Crear el `.env`
 
 ```bash
 cp .env.example .env
 ```
 
-Editar `.env` y completar las variables del proyecto que vas a usar. Cada proyecto tiene su propio conjunto de variables con prefijo (`AYUDANDO_`, `EMERGENCIAS_`, `FISCALIZACION_`).
-
-Como mínimo, para el proyecto activo debes completar:
+Editar `.env` y completar las variables marcadas con `change_me`. Como mínimo:
 
 | Variable | Descripción |
-|----------|-------------|
-| `AYUDANDO_POSTGRES_PASSWORD` | Contraseña de PostgreSQL |
-| `AYUDANDO_PGADMIN_PASSWORD` | Contraseña de pgAdmin |
-| `AYUDANDO_APP_KEY` | Clave de cifrado de Laravel |
-| `AYUDANDO_JWT_SECRET` | Secreto JWT |
-| `AYUDANDO_MAIL_HOST` | Servidor SMTP |
-| `AYUDANDO_MAIL_USERNAME` | Usuario SMTP |
-| `AYUDANDO_MAIL_PASSWORD` | Contraseña SMTP |
+|---|---|
+| `POSTGRES_PASSWORD` | Contraseña del servidor PostgreSQL compartido |
+| `PGADMIN_PASSWORD` | Contraseña de pgAdmin |
+| `<PREFIJO>_APP_KEY` | Clave Laravel — generar en el paso 5 |
+| `<PREFIJO>_JWT_SECRET` | String aleatorio largo |
+| `<PREFIJO>_MAIL_HOST/USERNAME/PASSWORD` | Credenciales SMTP |
 
-> Si vas a trabajar con varios proyectos, completa las variables de todos.
-
-### Paso 4 — Verificar el environment del frontend
-
-Cada proyecto tiene su propia configuración de URLs en:
-
-```
-src/<proyecto>/frontend/src/environments/environment.ts
-```
-
-Confirmar que las URLs apuntan a `localhost:<puerto-nginx>`:
-
-```typescript
-export const environment = {
-  production: false,
-  baseUrl: "http://localhost:8080/api/",     // Ayudando → 8080
-  storageUrl: "http://localhost:8080/storage/",
-  mapsApiKey: "TU_API_KEY_DE_GOOGLE_MAPS",
-};
-```
-
-Puertos correctos por proyecto:
-- Ayudando → `http://localhost:8080`
-- Emergencias → `http://localhost:8081`
-- Fiscalización → `http://localhost:8082`
-
-### Paso 5 — Construir las imágenes y levantar
+### 4. Levantar la infraestructura compartida
 
 ```bash
-# Con make:
-make build PROJECT=ayudando
+docker compose -f docker-compose.shared.yml up -d
+```
+
+Verificar que postgres esté healthy antes de continuar:
+
+```bash
+docker compose -f docker-compose.shared.yml ps
+# shared_postgres debe mostrar (healthy)
+```
+
+### 5. Levantar un proyecto
+
+```bash
 make up PROJECT=ayudando
-
-# Sin make:
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando build --no-cache
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando up -d
 ```
 
-La primera construcción tarda varios minutos porque descarga imágenes base, compila extensiones PHP e instala dependencias.
+La primera vez tarda varios minutos — descarga imágenes, compila extensiones PHP e instala dependencias npm.
 
-### Paso 6 — Importar la base de datos
-
-Esperar que PostgreSQL esté healthy:
+### 6. Generar APP_KEY
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando ps
-# ayudando_postgres debe mostrar (healthy)
+make artisan cmd="key:generate" PROJECT=ayudando
 ```
 
-Luego importar:
+Copiar el valor generado y pegarlo en `.env` como `AYUDANDO_APP_KEY`.
+
+### 7. Importar la base de datos
 
 ```bash
-# Con make:
 make db-import PROJECT=ayudando
-
-# Sin make:
-docker exec -i ayudando_postgres pg_restore -U postgres -d ayudando --no-owner --no-acl < src/ayudando/ayudando.tar
 ```
 
 > El dump está en formato `.tar` — se importa con `pg_restore`, **no** con `psql`.
 
-### Paso 7 — Verificar que todo esté corriendo
+### 8. Verificar que todo está corriendo
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando ps
+make ps PROJECT=ayudando
 ```
 
-Todos los contenedores deben mostrar `running` o `Up`. El frontend tarda unos minutos adicionales en compilar.
+El frontend tarda unos minutos adicionales en compilar. Para seguir el progreso:
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando logs frontend -f
+make logs PROJECT=ayudando
 # Esperar: ✔ Compiled successfully.
 ```
 
 ---
 
-## Comandos Docker Compose (forma directa)
+## Levantar el entorno
 
-Todos los comandos usan el patrón:
+### Infraestructura compartida (una sola vez)
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.<proyecto>.yml --project-name <proyecto> <comando>
+# Levantar postgres + pgAdmin + dashboard
+docker compose -f docker-compose.shared.yml up -d
+
+# Bajar (solo si querés resetear — pierde los datos si usás down -v)
+docker compose -f docker-compose.shared.yml down
 ```
 
-### Ayudando
+### Proyectos (uno a la vez)
 
 ```bash
 # Levantar
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando up -d
+make up PROJECT=ayudando
+make up PROJECT=emergencias
+make up PROJECT=fiscalizacion
 
 # Bajar
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando down
-
-# Ver logs
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando logs -f
-
-# Build (sin caché)
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando build --no-cache
-
-# Estado
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando ps
-
-# Shell backend
-docker exec -it ayudando_backend sh
-
-# Shell frontend
-docker exec -it ayudando_frontend sh
-
-# Shell DB
-docker exec -it ayudando_postgres psql -U postgres
-
-# Migrate
-docker exec ayudando_backend php artisan migrate
-
-# Migrate fresh + seed
-docker exec ayudando_backend php artisan migrate:fresh --seed
-
-# Cache clear
-docker exec ayudando_backend php artisan config:clear
-docker exec ayudando_backend php artisan cache:clear
-docker exec ayudando_backend php artisan route:clear
-
-# Artisan (cualquier comando)
-docker exec ayudando_backend php artisan <comando>
-
-# Importar DB
-docker exec -i ayudando_postgres pg_restore --no-owner --no-acl -U postgres -d ayudando < src/ayudando/ayudando.tar
+make down PROJECT=ayudando
 ```
 
-### Emergencias
+### Conectar pgAdmin al servidor de base de datos
 
-```bash
-# Levantar
-docker compose -f docker-compose.base.yml -f docker-compose.emergencias.yml --project-name emergencias up -d
+Al crear el servidor en pgAdmin, usar estos datos:
 
-# Shell DB
-docker exec -it emergencias_postgres psql -U postgres
-
-# Importar DB
-docker exec -i emergencias_postgres pg_restore --no-owner --no-acl -U postgres -d emergencias < src/emergencias/emergencias.tar
-
-# Migrate
-docker exec emergencias_backend php artisan migrate
-
-# Cache clear
-docker exec emergencias_backend php artisan config:clear
-```
-
-### Fiscalización
-
-```bash
-# Levantar
-docker compose -f docker-compose.base.yml -f docker-compose.fiscalizacion.yml --project-name fiscalizacion up -d
-
-# Shell DB
-docker exec -it fiscalizacion_postgres psql -U postgres
-
-# Importar DB
-docker exec -i fiscalizacion_postgres pg_restore --no-owner --no-acl -U postgres -d fiscalizacion < src/fiscalizacion/fiscalizacion.tar
-
-# Migrate
-docker exec fiscalizacion_backend php artisan migrate
-```
-
-> Para los demás comandos (build, logs, artisan, etc.), reemplazar `ayudando` por `emergencias` o `fiscalizacion`.
+| Campo | Valor |
+|---|---|
+| Host | `postgres` ← nombre del servicio Docker, **no** `localhost` |
+| Port | `5432` |
+| Maintenance database | `postgres` |
+| Username | `postgres` |
+| Password | valor de `POSTGRES_PASSWORD` en `.env` |
 
 ---
 
-## Comandos Make (forma corta)
+## Dashboard
+
+El dashboard se levanta automáticamente con `docker-compose.shared.yml` y está disponible en:
+
+**http://localhost:8090**
+
+Muestra tarjetas para cada proyecto con:
+- Estado en tiempo real (activo / inactivo) verificado cada 30 segundos
+- Links al frontend y al backend — habilitados solo si el servicio está corriendo
+- Guía de configuración paso a paso
+- Sección de problemas frecuentes
+
+### Cómo funciona el health check
+
+El nginx del dashboard hace proxy interno a los puertos del host usando `host.docker.internal`. Esto evita CORS y no requiere ningún cambio en los proyectos.
+
+```
+browser → GET localhost:8090/health/ayudando/frontend
+            ↓
+        nginx (dashboard, dentro de Docker)
+            ↓ proxy_pass
+        host.docker.internal:4200
+            ↓
+        ✅ 200 activo  /  ❌ 502 inactivo
+```
+
+---
+
+## Comandos Make
 
 ```bash
-# ─── Gestión del entorno ──────────────────────────────────────────────────────
-make up PROJECT=ayudando           # Levantar
-make down PROJECT=ayudando         # Bajar
-make build PROJECT=ayudando        # Reconstruir imágenes
-make logs PROJECT=ayudando         # Logs en tiempo real
-make ps PROJECT=ayudando           # Estado de contenedores
-make restart PROJECT=ayudando      # Reiniciar servicios
+# ─── Ciclo de vida ────────────────────────────────────────────────────────────
+make up       PROJECT=ayudando    # Levantar
+make down     PROJECT=ayudando    # Bajar
+make build    PROJECT=ayudando    # Reconstruir imágenes (sin caché)
+make restart  PROJECT=ayudando    # Reiniciar servicios
+make logs     PROJECT=ayudando    # Logs en tiempo real
+make ps       PROJECT=ayudando    # Estado de contenedores
 
-# ─── Shell en contenedores ─────────────────────────────────────────────────────
-make shell-backend PROJECT=ayudando   # Shell PHP
+# ─── Shell en contenedores ────────────────────────────────────────────────────
+make shell-backend  PROJECT=ayudando  # Shell PHP
 make shell-frontend PROJECT=ayudando  # Shell Node
-make shell-db PROJECT=ayudando        # psql
+make shell-db       PROJECT=ayudando  # psql
 
-# ─── Laravel ───────────────────────────────────────────────────────────────────
-make artisan cmd="migrate:status" PROJECT=ayudando  # Cualquier comando artisan
-make migrate PROJECT=ayudando                       # php artisan migrate
-make fresh PROJECT=ayudando                         # migrate:fresh --seed
-make cache-clear PROJECT=ayudando                   # Limpiar config, cache y rutas
-make cache-warm PROJECT=ayudando                    # Pre-cachear config y rutas
+# ─── Laravel / Artisan ────────────────────────────────────────────────────────
+make artisan    cmd="migrate:status" PROJECT=ayudando  # Cualquier comando artisan
+make migrate    PROJECT=ayudando                       # php artisan migrate
+make fresh      PROJECT=ayudando                       # migrate:fresh --seed
+make cache-clear PROJECT=ayudando                      # Limpiar config, cache y rutas
+make cache-warm  PROJECT=ayudando                      # Pre-cachear config y rutas
 
 # ─── Base de datos ────────────────────────────────────────────────────────────
-make db-import PROJECT=ayudando     # Importar dump .tar
+make db-import  PROJECT=ayudando  # Importar dump .tar
 
-# ─── GPU (opcional) ────────────────────────────────────────────────────────────
-make up-gpu PROJECT=ayudando        # Levantar con GPU
-make down-gpu PROJECT=ayudando      # Bajar y limpiar override GPU
-make gpu-check PROJECT=ayudando     # Verificar GPU en contenedor
+# ─── Diagnóstico ──────────────────────────────────────────────────────────────
+make mem-stats                    # Consumo de memoria por contenedor
+make logs-slow PROJECT=ayudando   # Queries PostgreSQL > 200ms
 
-# ─── Diagnóstico ───────────────────────────────────────────────────────────────
-make mem-stats                      # Consumo de memoria
-make logs-slow PROJECT=ayudando     # Queries lentas de PostgreSQL
-
-# ─── Ayuda ─────────────────────────────────────────────────────────────────────
-make help PROJECT=ayudando          # Mostrar todos los comandos
+# ─── GPU (opcional) ───────────────────────────────────────────────────────────
+make up-gpu    PROJECT=ayudando   # Levantar con soporte GPU
+make down-gpu  PROJECT=ayudando   # Bajar y limpiar override GPU
+make gpu-check PROJECT=ayudando   # Verificar GPU dentro del contenedor
 ```
 
 ---
 
 ## Variables de entorno
 
-El archivo `.env` usa un sistema de **prefijos** para aislar las variables de cada proyecto.
+El `.env` usa **prefijos** para aislar las variables de cada proyecto.
 
-### Convención de nombres
+### Infraestructura compartida
 
-```
-<PROYECTO>_<VARIABLE>
-```
+| Variable | Default | Descripción |
+|---|---|---|
+| `POSTGRES_USER` | `postgres` | Usuario del servidor PostgreSQL |
+| `POSTGRES_PASSWORD` | — | **Requerido** |
+| `PGADMIN_EMAIL` | `admin@local.dev` | Email de acceso a pgAdmin |
+| `PGADMIN_PASSWORD` | — | **Requerido** |
+| `POSTGRES_PORT` | `5432` | Puerto host de PostgreSQL |
+| `PGADMIN_PORT` | `5050` | Puerto host de pgAdmin |
+| `DASHBOARD_PORT` | `8090` | Puerto host del dashboard |
 
-| Prefijo | Proyecto |
-|---------|----------|
-| `AYUDANDO_` | Ayudando |
-| `EMERGENCIAS_` | Emergencias |
-| `FISCALIZACION_` | Fiscalización |
+### Por proyecto
 
-### Variables requeridas por proyecto
+Cada proyecto tiene su conjunto con prefijo `AYUDANDO_`, `EMERGENCIAS_` o `FISCALIZACION_`:
 
 | Variable | Descripción |
-|----------|-------------|
-| `<PREFIJO>_POSTGRES_PASSWORD` | Contraseña de PostgreSQL |
-| `<PREFIJO>_PGADMIN_PASSWORD` | Contraseña de pgAdmin |
-| `<PREFIJO>_APP_KEY` | Clave de cifrado de Laravel (generar con `php artisan key:generate`) |
-| `<PREFIJO>_JWT_SECRET` | Secreto para autenticación JWT |
+|---|---|
+| `<PREFIJO>_APP_KEY` | Clave de cifrado Laravel (`php artisan key:generate`) |
+| `<PREFIJO>_JWT_SECRET` | Secreto JWT |
 | `<PREFIJO>_MAIL_HOST` | Servidor SMTP |
 | `<PREFIJO>_MAIL_USERNAME` | Usuario SMTP |
 | `<PREFIJO>_MAIL_PASSWORD` | Contraseña SMTP |
-
-Todas son obligatorias. Si falta alguna, el contenedor falla al iniciar.
-
-### Variables de puerto (con valores por defecto)
-
-| Variable | Default | Descripción |
-|----------|---------|-------------|
-| `<PREFIJO>_NGINX_PORT` | 8080 / 8081 / 8082 | Puerto de la app (Nginx) |
-| `<PREFIJO>_FRONTEND_PORT` | 4200 / 4201 / 4202 | Puerto del frontend (Ionic) |
-| `<PREFIJO>_POSTGRES_PORT` | 5432 / 5433 / 5434 | Puerto de PostgreSQL |
-| `<PREFIJO>_PGADMIN_PORT` | 5050 / 5051 / 5052 | Puerto de pgAdmin |
-
-Los puertos tienen valores pre-asignados para evitar conflictos entre proyectos. Se pueden sobrescribir en `.env` si hay conflictos con otros servicios locales.
+| `<PREFIJO>_NGINX_PORT` | Puerto host del backend (default: 8080/81/82) |
+| `<PREFIJO>_FRONTEND_PORT` | Puerto host del frontend (default: 4200/01/02) |
 
 ---
 
-## Puertos por proyecto
+## Puertos
 
-| Proyecto | App (Nginx) | Frontend (Ionic) | PostgreSQL | pgAdmin |
-|----------|-------------|------------------|------------|---------|
-| Ayudando | 8080 | 4200 | 5432 | 5050 |
-| Emergencias | 8081 | 4201 | 5433 | 5051 |
-| Fiscalización | 8082 | 4202 | 5434 | 5052 |
+| Servicio | Ayudando | Emergencias | Fiscalización |
+|---|---|---|---|
+| Backend (Nginx) | 8080 | 8081 | 8082 |
+| Frontend (Angular) | 4200 | 4201 | 4202 |
+| **Compartido** | | | |
+| PostgreSQL | 5432 | | |
+| pgAdmin | 5050 | | |
+| Dashboard | 8090 | | |
 
-Cada proyecto tiene puertos exclusivos. Puedes ejecutar los tres proyectos simultáneamente sin conflictos.
-
----
-
-## Dashboard
-
-El archivo `docker/dashboard/index.html` es un panel web que muestra enlaces a todos los proyectos.
-
-### Cómo usarlo
-
-1. Asegúrate de tener al menos un proyecto corriendo
-2. Abre el archivo directamente en tu navegador (doble click)
-3. Verás tarjetas para cada proyecto con enlaces a:
-   - 🌐 App (Nginx) — la aplicación Laravel
-   - ⚛ Frontend (Ionic) — el dev server de Angular
-   - 🗄 pgAdmin — administrador de base de datos
-   - 🐘 PostgreSQL — puerto de conexión directa
-
-El dashboard es un archivo HTML estático, no requiere servidor. Se puede abrir desde el sistema de archivos.
+Todos los puertos son sobreescribibles en `.env`.
 
 ---
 
 ## Agregar un nuevo proyecto
 
-Para agregar un cuarto proyecto (ej: `nuevoproyecto`), seguir estos pasos:
-
-### 1. Asignar puertos
-
-Elegir 4 puertos libres que no conflictúen con los existentes:
+### 1. Asignar puertos libres
 
 | Servicio | Puerto sugerido |
-|----------|-----------------|
-| Nginx | 8083 |
+|---|---|
+| Backend (Nginx) | 8083 |
 | Frontend | 4203 |
-| PostgreSQL | 5435 |
-| pgAdmin | 5053 |
 
-### 2. Crear `docker-compose.nuevoproyecto.yml`
+### 2. Crear `docker-compose.<proyecto>.yml`
 
 Copiar `docker-compose.ayudando.yml` y reemplazar:
 
-- Nombre del proyecto en comentarios y `APP_NAME`
-- Prefijo de variables: `AYUDANDO_` → `NUEVOPROYECTO_`
-- Puertos: 8080 → 8083, 4200 → 4203, 5432 → 5435, 5050 → 5053
-- Nombre de la red: `ayudando_net` → `nuevoproyecto_net`
-- Nombre de volúmenes frontend (opcional, para aislar node_modules)
-- Database: `ayudando` → `nuevoproyecto`
+- `ayudando` → nombre del nuevo proyecto en todos los campos
+- Prefijo de variables: `AYUDANDO_` → `<NUEVOPROYECTO>_`
+- Nombre de red: `ayudando_net` → `<nuevoproyecto>_net`
+- Puertos en los defaults: `8080` → `8083`, `4200` → `4203`
 
 ### 3. Agregar variables al `.env.example`
 
@@ -468,8 +396,6 @@ Copiar `docker-compose.ayudando.yml` y reemplazar:
 # ============================================================
 # NUEVOPROYECTO
 # ============================================================
-NUEVOPROYECTO_POSTGRES_PASSWORD=change_me
-NUEVOPROYECTO_PGADMIN_PASSWORD=change_me
 NUEVOPROYECTO_APP_KEY=base64:GENERATE_WITH_php_artisan_key_generate
 NUEVOPROYECTO_JWT_SECRET=GENERATE_A_STRONG_SECRET
 NUEVOPROYECTO_MAIL_HOST=your.smtp.host
@@ -478,11 +404,9 @@ NUEVOPROYECTO_MAIL_PASSWORD=change_me
 
 NUEVOPROYECTO_NGINX_PORT=8083
 NUEVOPROYECTO_FRONTEND_PORT=4203
-NUEVOPROYECTO_POSTGRES_PORT=5435
-NUEVOPROYECTO_PGADMIN_PORT=5053
 ```
 
-### 4. Agregar al Makefile
+### 4. Registrar en el Makefile
 
 ```makefile
 VALID_PROJECTS := ayudando emergencias fiscalizacion nuevoproyecto
@@ -490,9 +414,11 @@ VALID_PROJECTS := ayudando emergencias fiscalizacion nuevoproyecto
 
 ### 5. Agregar al dashboard
 
-Editar `docker/dashboard/index.html` y agregar una nueva tarjeta siguiendo el mismo patrón de las existentes.
+En `docker/dashboard/index.html`: copiar una tarjeta existente, cambiar el `id`, nombre, puertos y color.
 
-### 6. Verificar que funciona
+En `docker/dashboard/nginx.conf`: agregar dos `location` blocks para `/health/<nuevoproyecto>/frontend` y `/health/<nuevoproyecto>/backend`.
+
+### 6. Verificar
 
 ```bash
 make build PROJECT=nuevoproyecto
@@ -504,149 +430,61 @@ make ps PROJECT=nuevoproyecto
 
 ## Solución de problemas
 
-### Backend no conecta a la base de datos
-
-Verificar que PostgreSQL está healthy:
+### Backend no conecta a la DB
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando ps
-# ayudando_postgres debe mostrar (healthy)
+docker compose -f docker-compose.shared.yml ps
+# shared_postgres debe mostrar (healthy)
 ```
 
-Si no está healthy, revisar logs:
+Causa más común: `POSTGRES_PASSWORD` vacío en `.env`.
 
-```bash
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando logs postgres
-```
+### pgAdmin no puede conectar
 
-Causas comunes:
-- `POSTGRES_PASSWORD` no definida en `.env` (revisar que la variable con el prefijo correcto esté completa)
-- El archivo `.env` no existe (correr `cp .env.example .env`)
-- El proyecto activo no coincide: `PROJECT=ayudando` en `.env` pero se ejecutó con `PROJECT=emergencias`
-
-### Composer install falla en el contenedor
-
-```bash
-docker exec -it ayudando_backend sh
-composer install --ignore-platform-reqs -vvv
-```
-
-Si hay conflictos con `tymon/jwt-auth` y PHP 8.1, verificar que la versión de `tymon/jwt-auth` soporta PHP 8.1 (requerir `^2.0`).
-
-### pgAdmin no puede conectar a PostgreSQL
-
-- El host debe ser `postgres` (nombre del servicio Docker), **no** `localhost`
-- El puerto en pgAdmin es `5432` (interno del contenedor), **no** el puerto host del `.env`
-- Verificar que el contenedor de postgres está corriendo
-- Verificar que la contraseña en pgAdmin coincide con `<PREFIJO>_POSTGRES_PASSWORD` del `.env`
+- Host debe ser `postgres` (nombre del servicio), **no** `localhost`
+- Puerto en pgAdmin: `5432` (interno), no el puerto del `.env`
+- Maintenance database: `postgres`
 
 ### Puerto ya en uso
 
-Si el puerto 8080 está ocupado por otro servicio local, sobrescribir en `.env`:
+Sobreescribir en `.env`:
 
 ```env
 AYUDANDO_NGINX_PORT=8083
+AYUDANDO_FRONTEND_PORT=4203
 ```
 
-Luego:
+Luego `make down PROJECT=ayudando && make up PROJECT=ayudando`.
+
+### Frontend no detecta cambios de archivos
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando down
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando up -d
+make restart PROJECT=ayudando
 ```
 
-### Cambios de frontend no se reflejan
+El dev server usa `--poll 1000` para Windows. Si sigue sin funcionar, reiniciar el contenedor.
 
-El dev server usa polling (`--poll 1000`) para detectar cambios en Windows. Si no funciona:
+### Composer falla dentro del contenedor
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando restart frontend
+make shell-backend PROJECT=ayudando
+composer install --ignore-platform-reqs -vvv
 ```
 
 ### Reset completo de la base de datos
 
 ```bash
-# ⚠️ Destructivo — elimina todos los datos
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando down -v
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando up -d
+# ⚠️ Destruye TODOS los datos de todos los proyectos
+docker compose -f docker-compose.shared.yml down -v
+docker compose -f docker-compose.shared.yml up -d
 make db-import PROJECT=ayudando
 ```
 
-> `down -v` elimina los volúmenes. Asegurarse de tener el archivo `.tar` antes de ejecutar.
-
-### Variables de entorno no cargadas
-
-Docker Compose lee `.env` automáticamente si está en la raíz del proyecto. Verificar:
+### Las variables de entorno no se cargan
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando config
+# Verificar que Docker Compose ve los valores correctos
+docker compose -f docker-compose.shared.yml config
 ```
 
-Si las variables aparecen vacías, el `.env` no existe, tiene formato incorrecto, o el prefijo no coincide.
-
-### Contenedor supera el límite de memoria
-
-```bash
-docker stats --no-stream
-```
-
-Si un contenedor está cerca del 100%, aumentar el límite en `docker-compose.base.yml` o en el override del proyecto, y aplicar con `up -d`.
-
----
-
-## Arquitectura
-
-### Patrón base + override
-
-La arquitectura usa el patrón **base + override** de Docker Compose:
-
-- **`docker-compose.base.yml`**: Define los servicios compartidos (PostgreSQL, pgAdmin, Redis) con configuración genérica. No expone puertos al host ni define credenciales — eso lo hace cada override.
-
-- **`docker-compose.<proyecto>.yml`**: Override específico por proyecto. Añade los servicios backend (PHP-FPM), Nginx y frontend (Node), y configura los puertos y credenciales específicos del proyecto usando variables con prefijo.
-
-```bash
-# Composición final:
-docker compose -f docker-compose.base.yml -f docker-compose.ayudando.yml --project-name ayudando up -d
-```
-
-Docker Compose fusiona ambos archivos: los servicios del override se agregan, y si un servicio existe en ambos archivos, las configuraciones se fusionan (environment, volumes, ports se combinan; las llaves duplicadas en environment ganan con el override).
-
-### Por qué Nginx no necesita cambios por proyecto
-
-El archivo `docker/nginx/default.conf` usa la ruta genérica `/var/www/html` y proxea a `backend:9000`. Como cada proyecto tiene su propio stack aislado con su propia red, el mismo archivo de configuración de Nginx funciona para todos los proyectos sin modificaciones.
-
-### Aislamiento de volúmenes
-
-| Volumen | Propósito | Aislamiento |
-|---------|-----------|-------------|
-| `postgres_data` | Datos persistentes de PostgreSQL | Compartido (un volumen único) |
-| `pgadmin_data` | Configuración de pgAdmin | Compartido |
-| `frontend_node_modules` | Dependencias npm del frontend | Por proyecto (nombre único) |
-| `frontend_angular_cache` | Caché de compilación Angular | Por proyecto |
-
-Los volúmenes `frontend_node_modules` y `frontend_angular_cache` se crean con nombres exclusivos por proyecto (prefijados por `--project-name`). Esto aísla las dependencias npm y evita conflictos de versión entre proyectos.
-
-### Flujo de datos
-
-```
-Navegador → Nginx :8080 → PHP-FPM (backend) :9000
-                                     ↓
-                          PostgreSQL :5432
-                          Redis :6379
-```
-
-```
-Navegador → Frontend (ng serve) :4200 → API via Nginx :8080/api/*
-```
-
-### Comunicación entre servicios
-
-Todos los servicios se comunican por el nombre del servicio Docker (ej: `postgres`, `redis`, `backend`), no por `localhost`. Esto funciona porque todos comparten la misma red interna (`<proyecto>_net`).
-
-### Archivos de entrada compartidos
-
-Los archivos `php.ini`, `nginx.conf`, `default.conf` y las plantillas de entrypoint viven en `docker/` y son compartidos por todos los proyectos. No necesitan cambios por proyecto porque:
-
-- Las rutas dentro del contenedor son las mismas para todos los proyectos (`/var/www/html`)
-- Los nombres de servicios son los mismos (`postgres`, `backend`, etc.)
-- La red interna resuelve los nombres de servicio independientemente del proyecto
+Si las variables aparecen vacías: el `.env` no existe, tiene un typo en el nombre, o el prefijo no coincide.
