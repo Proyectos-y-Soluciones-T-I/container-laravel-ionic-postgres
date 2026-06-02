@@ -14,6 +14,7 @@ Un solo repositorio de infraestructura. El código fuente de cada proyecto vive 
 4. [Requisitos previos](#requisitos-previos)
 5. [Configuración inicial](#configuración-inicial)
 6. [Comandos Docker](#comandos-docker)
+   - [Build de producción (Ionic)](#build-de-producción-ionic)
 7. [Dashboard](#dashboard)
 8. [Make — atajos opcionales](#make--atajos-opcionales)
 9. [Variables de entorno](#variables-de-entorno)
@@ -306,10 +307,33 @@ docker exec -i shared_postgres pg_restore -U postgres -d emergencias --no-owner 
 docker exec -i shared_postgres pg_restore -U postgres -d fiscalizacion --no-owner --no-acl < src/fiscalizacion/fiscalizacion.tar
 ```
 
+### Build de producción (Ionic)
+
+Genera el bundle estático (`www/`) dentro del contenedor que ya está corriendo.
+El resultado queda en `src/<proyecto>/frontend/www/` en el host gracias al bind-mount.
+
+```bash
+# Build con configuración específica (reemplazá el nombre de la configuración)
+docker exec ayudando_frontend ionic build --prod --configuration=otto
+
+# Verificar que el www/ fue generado
+docker exec ayudando_frontend ls -lh /app/www
+```
+
+El `www/` generado queda disponible en el host en:
+
+```
+src/ayudando/frontend/www/
+```
+
+> El contenedor `ayudando_frontend` debe estar corriendo (`docker compose ... up -d`).
+> Si no está levantado, levantarlo primero — el build usa las dependencias npm instaladas en el volumen `ayudando_node_modules`.
+
+---
+
 ### Diagnóstico
 
 ```bash
-# Consumo de memoria y CPU por contenedor
 docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.CPUPerc}}"
 
 # Queries PostgreSQL lentas (> 200ms)
