@@ -15,12 +15,13 @@ Un solo repositorio de infraestructura. El código fuente de cada proyecto vive 
 5. [Configuración inicial](#configuración-inicial)
 6. [Comandos Docker](#comandos-docker)
    - [Build de producción (Ionic)](#build-de-producción-ionic)
-7. [Dashboard](#dashboard)
-8. [Make — atajos opcionales](#make--atajos-opcionales)
-9. [Variables de entorno](#variables-de-entorno)
-10. [Puertos](#puertos)
-11. [Agregar un nuevo proyecto](#agregar-un-nuevo-proyecto)
-12. [Solución de problemas](#solución-de-problemas)
+7. [@ngx-formly — instalación opcional](#ngx-formly--instalación-opcional)
+8. [Dashboard](#dashboard)
+9. [Make — atajos opcionales](#make--atajos-opcionales)
+10. [Variables de entorno](#variables-de-entorno)
+11. [Puertos](#puertos)
+12. [Agregar un nuevo proyecto](#agregar-un-nuevo-proyecto)
+13. [Solución de problemas](#solución-de-problemas)
 
 ---
 
@@ -73,12 +74,18 @@ container-laravel-ionic-postgres/
 ├── .env                              ← Creado localmente desde .env.example (no commitear)
 ├── .gitattributes                    ← Normalización LF para todo el repo
 ├── Makefile                          ← Atajos opcionales (ver sección Make)
+├── CHANGELOG.md                      ← Historial de cambios del proyecto
+├── MOBILE_BUILD.md                   ← Guía de build y firma para Android/iOS
+├── @ngx-formly.zip                   ← Paquete local de @ngx-formly (instalación opcional)
 │
 ├── docker-compose.shared.yml         ← Infraestructura compartida (postgres, pgadmin, dashboard)
 ├── docker-compose.ayudando.yml       ← Servicios del proyecto Ayudando
 ├── docker-compose.emergencias.yml    ← Servicios del proyecto Emergencias
 ├── docker-compose.fiscalizacion.yml  ← Servicios del proyecto Fiscalización
 ├── docker-compose.gpu.yml            ← Overlay GPU opcional
+│
+├── scripts/
+│   └── setup.sh                      ← Setup interactivo (pregunta si instalar @ngx-formly)
 │
 ├── docker/
 │   ├── php/
@@ -90,8 +97,8 @@ container-laravel-ionic-postgres/
 │   │   ├── nginx.conf                ← Timeouts 600s, body 500MB
 │   │   └── default.conf              ← Proxy a PHP-FPM :9000
 │   ├── frontend/
-│   │   ├── Dockerfile                ← Node 18 + Ionic CLI 7 + Angular CLI 17
-│   │   └── entrypoint.sh             ← npm install + ng serve --poll 1000
+│   │   ├── Dockerfile                ← Node 18 + Ionic CLI 7 + Angular CLI 17 + unzip
+│   │   └── entrypoint.sh             ← npm install + extracción @ngx-formly + ng serve
 │   └── dashboard/
 │       ├── index.html                ← Dashboard con health checks en tiempo real
 │       ├── nginx.conf.template       ← Config nginx del dashboard (se procesa al inicio)
@@ -186,6 +193,21 @@ docker compose -f docker-compose.shared.yml ps
 ```
 
 ### 5. Levantar el proyecto
+
+**Opción A — Setup interactivo (recomendado para primera vez):**
+
+```bash
+bash scripts/setup.sh ayudando
+# Pregunta si instalar @ngx-formly desde el zip local antes de levantar el contenedor
+```
+
+Equivalente con Make:
+
+```bash
+make setup PROJECT=ayudando
+```
+
+**Opción B — Docker directo:**
 
 ```bash
 docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
@@ -309,25 +331,20 @@ docker exec -i shared_postgres pg_restore -U postgres -d fiscalizacion --no-owne
 
 ### Build de producción (Ionic)
 
-Genera el bundle estático (`www/`) dentro del contenedor que ya está corriendo.
-El resultado queda en `src/<proyecto>/frontend/www/` en el host gracias al bind-mount.
+La compilación web corre **dentro del contenedor**. El resultado queda en `src/<proyecto>/frontend/www/` gracias al bind-mount.
 
 ```bash
-# Build con configuración específica (reemplazá el nombre de la configuración)
-docker exec ayudando_frontend ionic build --prod --configuration=otto
+# El contenedor debe estar corriendo
+docker exec ayudando_frontend ionic build --prod
+
+# Con configuración Angular específica
+docker exec ayudando_frontend ionic build --prod --configuration=production
 
 # Verificar que el www/ fue generado
 docker exec ayudando_frontend ls -lh /app/www
 ```
 
-El `www/` generado queda disponible en el host en:
-
-```
-src/ayudando/frontend/www/
-```
-
-> El contenedor `ayudando_frontend` debe estar corriendo (`docker compose ... up -d`).
-> Si no está levantado, levantarlo primero — el build usa las dependencias npm instaladas en el volumen `ayudando_node_modules`.
+Para el proceso completo de build nativo (Android/iOS), firma y publicación en tiendas, ver [`MOBILE_BUILD.md`](./MOBILE_BUILD.md).
 
 ---
 
@@ -364,6 +381,52 @@ Abrir http://localhost:5050 y crear un servidor con estos datos:
 
 ---
 
+## @ngx-formly — instalación opcional
+
+`@ngx-formly` es una dependencia local (no publicada en npm) que se distribuye como `@ngx-formly.zip` en la raíz del repositorio.
+
+### Instalación interactiva (recomendada)
+
+El script `scripts/setup.sh` detecta el zip y pregunta antes de levantar el contenedor:
+
+```bash
+bash scripts/setup.sh ayudando
+# → Found @ngx-formly.zip. Install? [y/N]
+```
+
+O con Make:
+
+```bash
+make setup PROJECT=ayudando
+```
+
+### Instalación manual vía env var
+
+Si preferís controlar la instalación directamente:
+
+```bash
+INSTALL_FORMLY=yes docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
+```
+
+### Cómo funciona
+
+El zip se monta de forma **read-only** en `/tmp/ngx-formly.zip` dentro del contenedor.
+Al arrancar, `docker/frontend/entrypoint.sh` verifica:
+
+1. `INSTALL_FORMLY=yes`
+2. El zip existe en `/tmp/ngx-formly.zip`
+3. `node_modules/@ngx-formly` **no** existe todavía
+
+Si las tres condiciones se cumplen, extrae el zip en `node_modules/`. En arranques posteriores, el paquete ya está instalado y el paso se omite automáticamente.
+
+### Verificar instalación
+
+```bash
+docker exec ayudando_frontend ls node_modules/@ngx-formly
+```
+
+---
+
 ## Dashboard
 
 El dashboard se levanta automáticamente con `docker-compose.shared.yml`:
@@ -382,7 +445,7 @@ El nginx del dashboard detecta la IP del host al iniciarse y hace proxy interno 
 
 ## Make — atajos opcionales
 
-`make` es una herramienta que permite definir comandos cortos como aliases. **No es requerido** — todos los comandos de este repo funcionan con Docker directamente. Es simplemente un atajo para no tipear el comando completo cada vez.
+`make` es una herramienta que permite definir comandos cortos como aliases. **No es requerido** — todos los comandos de este repo funcionan con Docker directamente.
 
 ### Instalación
 
@@ -392,19 +455,12 @@ El nginx del dashboard detecta la IP del host al iniciarse y hace proxy interno 
 
 Verificar: `make --version`
 
-### Cómo funciona
-
-El `Makefile` en la raíz del repo traduce comandos cortos a comandos Docker completos:
-
-```bash
-make up PROJECT=ayudando
-# equivale a:
-docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
-```
-
 ### Referencia de comandos
 
 ```bash
+# ─── Setup interactivo ────────────────────────────────────────────────────────
+make setup    PROJECT=ayudando    # scripts/setup.sh — pregunta por @ngx-formly
+
 # ─── Ciclo de vida ────────────────────────────────────────────────────────────
 make up       PROJECT=ayudando    # docker compose ... up -d
 make down     PROJECT=ayudando    # docker compose ... down
@@ -471,6 +527,14 @@ Prefijos: `AYUDANDO_`, `EMERGENCIAS_`, `FISCALIZACION_`
 | `<PREFIJO>_MAIL_PASSWORD` | Contraseña SMTP |
 | `<PREFIJO>_NGINX_PORT` | Puerto host del backend (default: 8080/81/82) |
 | `<PREFIJO>_FRONTEND_PORT` | Puerto host del frontend (default: 4200/01/02) |
+
+### Opcionales
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `INSTALL_FORMLY` | `no` | `yes` para extraer `@ngx-formly.zip` en `node_modules` al primer arranque |
+
+> Usá `scripts/setup.sh` o `make setup` para que te pregunte interactivamente en lugar de setear esta variable a mano.
 
 ---
 
@@ -609,3 +673,30 @@ docker compose -f docker-compose.ayudando.yml --project-name ayudando config
 ```
 
 Si las variables aparecen vacías: el `.env` no existe, tiene un typo, o el prefijo no coincide.
+
+### @ngx-formly no se instala
+
+Verificar que el zip existe en la raíz del repo:
+
+```bash
+ls @ngx-formly.zip
+```
+
+Verificar que el contenedor tiene la variable seteada:
+
+```bash
+docker exec ayudando_frontend env | grep INSTALL_FORMLY
+```
+
+Si `INSTALL_FORMLY=no`, reiniciar con la variable correcta:
+
+```bash
+docker compose -f docker-compose.ayudando.yml --project-name ayudando down
+INSTALL_FORMLY=yes docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
+```
+
+O bien usar el script interactivo:
+
+```bash
+bash scripts/setup.sh ayudando
+```
