@@ -19,6 +19,7 @@ FRONTEND_IMAGE = $(DOCKERHUB_USER)/ayudando-frontend
         shell-backend shell-frontend shell-db artisan \
         db-import migrate fresh cache-clear cache-warm \
         gpu-check mem-stats logs-slow \
+        setup \
         buildx-setup build-backend-multi build-frontend-multi build-multi
 
 # ─── Help ────────────────────────────────────────────────────────────────────
@@ -94,6 +95,10 @@ guard-project:
 		echo "  make up PROJECT=fiscalizacion"; \
 		exit 1; \
 	fi
+
+# ─── Interactive setup (with optional @ngx-formly prompt) ────────────────────
+setup: guard-project
+	@bash scripts/setup.sh $(PROJECT)
 
 # ─── Lifecycle ────────────────────────────────────────────────────────────────
 
