@@ -6,7 +6,8 @@ PROJECT ?= ayudando
 VALID_PROJECTS := ayudando emergencias fiscalizacion
 
 # ─── Compose files (base + per-project override) ──────────────────────────────
-COMPOSE_CMD = docker compose -f docker-compose.base.yml -f docker-compose.$(PROJECT).yml --project-name $(PROJECT)
+COMPOSE_CMD     = docker compose -f docker-compose.base.yml -f docker-compose.$(PROJECT).yml --project-name $(PROJECT)
+COMPOSE_GPU_CMD = docker compose -f docker-compose.base.yml -f docker-compose.$(PROJECT).yml -f docker-compose.gpu.yml --project-name $(PROJECT)
 
 # ─── Docker Hub user — override: make build-multi DOCKERHUB_USER=myuser ───────
 DOCKERHUB_USER ?= your-dockerhub-user
@@ -15,7 +16,7 @@ VERSION        ?= latest
 BACKEND_IMAGE  = $(DOCKERHUB_USER)/ayudando-backend
 FRONTEND_IMAGE = $(DOCKERHUB_USER)/ayudando-frontend
 
-.PHONY: help guard-project up up-gpu up-no-gpu down down-gpu restart logs ps \
+.PHONY: help guard-project up up-gpu down down-gpu restart logs ps \
         shell-backend shell-frontend shell-db artisan \
         db-import migrate fresh cache-clear cache-warm \
         gpu-check mem-stats logs-slow \
@@ -56,9 +57,8 @@ help: guard-project
 	@echo "│ make db-import      │ docker exec -i $(PROJECT)_postgres pg_restore -U postgres    │"
 	@echo "│                     │   -d $(PROJECT) --no-owner --no-acl < src/$(PROJECT)/$(PROJECT).tar │"
 	@echo "├─────────────────────┼────────────────────────────────────────────────────────────┤"
-	@echo "│ make up-gpu         │ $(COMPOSE_CMD) up -d + GPU overlay                          │"
-	@echo "│ make down-gpu       │ $(COMPOSE_CMD) down + clean GPU override                    │"
-	@echo "│ make up-no-gpu      │ $(COMPOSE_CMD) up -d without GPU                            │"
+	@echo "│ make up-gpu         │ $(COMPOSE_GPU_CMD) up -d                           │"
+	@echo "│ make down-gpu       │ $(COMPOSE_GPU_CMD) down                            │"
 	@echo "├─────────────────────┼────────────────────────────────────────────────────────────┤"
 	@echo "│ make gpu-check      │ docker exec $(PROJECT)_backend nvidia-smi                    │"
 	@echo "│ make mem-stats      │ docker stats --no-stream                                    │"
@@ -102,25 +102,17 @@ setup: guard-project
 
 # ─── Lifecycle ────────────────────────────────────────────────────────────────
 
-# docker-compose.override.yml is auto-merged by Docker Compose — no -f flags needed.
-# If it exists (GPU machine), GPU is active. If not, vanilla mode.
 up: guard-project
 	$(COMPOSE_CMD) up -d
 
 up-gpu: guard-project
-	cp docker-compose.gpu.yml docker-compose.override.yml
-	$(COMPOSE_CMD) up -d
-
-up-no-gpu: guard-project
-	rm -f docker-compose.override.yml
-	$(COMPOSE_CMD) up -d
+	$(COMPOSE_GPU_CMD) up -d
 
 down: guard-project
 	$(COMPOSE_CMD) down
 
 down-gpu: guard-project
-	$(COMPOSE_CMD) down
-	rm -f docker-compose.override.yml
+	$(COMPOSE_GPU_CMD) down
 
 restart: guard-project
 	$(COMPOSE_CMD) restart
