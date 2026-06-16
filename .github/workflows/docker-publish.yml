@@ -87,7 +87,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ─── Sync README to Docker Hub (main branch only) ────────────────────────────
+  # ─── Sync DOCKER_HUB.md to Docker Hub (main branch only) ───────────────────
+  # Only updates the two published images: ayudando-backend and ayudando-frontend.
+  # Uses DOCKER_HUB.md (not README.md) to stay within DockerHub's 25000-byte limit.
   update-dockerhub-readme:
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend]
@@ -95,16 +97,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: peter-evans/dockerhub-description@v3
+      - name: Update ayudando-backend description
+        uses: peter-evans/dockerhub-description@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ secrets.DOCKERHUB_USERNAME }}/ayudando-backend
-          readme-filepath: ./README.md
+          readme-filepath: ./DOCKER_HUB.md
 
-      - uses: peter-evans/dockerhub-description@v3
+      - name: Update ayudando-frontend description
+        uses: peter-evans/dockerhub-description@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: ${{ secrets.DOCKERHUB_USERNAME }}/container-laravel-ionic-postgres
-          readme-filepath: ./README.md
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/ayudando-frontend
+          readme-filepath: ./DOCKER_HUB.md

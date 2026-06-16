@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+
+  # ─── PostgreSQL 14.22 ─────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:14.22-alpine
+    container_name: ${PROJECT}_postgres
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c work_mem=8MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c effective_cache_size=1GB
+      -c random_page_cost=1.1
+      -c log_min_duration_statement=200
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      # POSTGRES_PASSWORD y POSTGRES_DB se definen en el override por proyecto
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ${PROJECT}_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${PROJECT}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── pgAdmin 7.3 ──────────────────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:7.3
+    container_name: ${PROJECT}_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@${PROJECT}.local
+      # PGADMIN_DEFAULT_PASSWORD se define en el override por proyecto
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - ${PROJECT}_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ─── Redis 7 (session + cache) ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: ${PROJECT}_redis
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
+    networks:
+      - ${PROJECT}_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 160M
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "2"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+  pgadmin_data:

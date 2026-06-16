@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dev Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); }
+
+    /* Status badge animations */
+    @keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)} 50%{box-shadow:0 0 0 6px rgba(34,197,94,0)} }
+    @keyframes pulse-gray  { 0%,100%{box-shadow:0 0 0 0 rgba(156,163,175,.3)} 50%{box-shadow:0 0 0 6px rgba(156,163,175,0)} }
+    @keyframes spin        { to { transform: rotate(360deg); } }
+
+    .dot-up      { animation: pulse-green 2s ease infinite; background:#22c55e; }
+    .dot-down    { background:#4b5563; }
+    .dot-checking{ animation: spin 1s linear infinite; border:2px solid #6b7280; border-top-color:#93c5fd; border-radius:50%; background:transparent !important; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm font-bold">D</div>
+        <span class="font-semibold text-lg">Dev Dashboard</span>
+        <span class="text-gray-500 text-sm">/ local</span>
+      </div>
+      <button onclick="checkAll()" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-800">
+        <svg id="refresh-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Verificar estado
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-10 space-y-12">
+
+    <!-- ── Sistemas ───────────────────────────────────────────────── -->
+    <section>
+      <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Sistemas</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <!-- Ayudando -->
+        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4" id="card-ayudando">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="font-semibold text-base">Ayudando</h3>
+              <p class="text-gray-500 text-sm mt-0.5">Laravel + Ionic · PHP 8.1</p>
+            </div>
+            <span id="badge-ayudando" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+              <span id="dot-ayudando" class="w-2 h-2 rounded-full dot-checking"></span>
+              <span id="label-ayudando">verificando…</span>
+            </span>
+          </div>
+          <div class="space-y-2">
+            <a id="link-ayudando-frontend" href="http://localhost:4200" target="_blank"
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Frontend
+              </span>
+              <span class="text-gray-400 text-xs">:4200</span>
+            </a>
+            <a id="link-ayudando-backend" href="http://localhost:8080" target="_blank"
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                API / Backend
+              </span>
+              <span class="text-gray-400 text-xs">:8080</span>
+            </a>
+          </div>
+          <p class="text-gray-600 text-xs">Contenedores: <code class="text-gray-500">ayudando_backend · ayudando_frontend · ayudando_nginx</code></p>
+        </div>
+
+        <!-- Emergencias -->
+        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4" id="card-emergencias">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="font-semibold text-base">Emergencias</h3>
+              <p class="text-gray-500 text-sm mt-0.5">Laravel + Ionic · PHP 8.1</p>
+            </div>
+            <span id="badge-emergencias" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+              <span id="dot-emergencias" class="w-2 h-2 rounded-full dot-checking"></span>
+              <span id="label-emergencias">verificando…</span>
+            </span>
+          </div>
+          <div class="space-y-2">
+            <a id="link-emergencias-frontend" href="http://localhost:4201" target="_blank"
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Frontend
+              </span>
+              <span class="text-gray-400 text-xs">:4201</span>
+            </a>
+            <a id="link-emergencias-backend" href="http://localhost:8081" target="_blank"
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                API / Backend
+              </span>
+              <span class="text-gray-400 text-xs">:8081</span>
+            </a>
+          </div>
+          <p class="text-gray-600 text-xs">Contenedores: <code class="text-gray-500">emergencias_backend · emergencias_frontend · emergencias_nginx</code></p>
+        </div>
+
+        <!-- Fiscalización -->
+        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4" id="card-fiscalizacion">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="font-semibold text-base">Fiscalización</h3>
+              <p class="text-gray-500 text-sm mt-0.5">Laravel + Ionic · PHP 8.1</p>
+            </div>
+            <span id="badge-fiscalizacion" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+              <span id="dot-fiscalizacion" class="w-2 h-2 rounded-full dot-checking"></span>
+              <span id="label-fiscalizacion">verificando…</span>
+            </span>
+          </div>
+          <div class="space-y-2">
+            <a id="link-fiscalizacion-frontend" href="http://localhost:4202" target="_blank"
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Frontend
+              </span>
+              <span class="text-gray-400 text-xs">:4202</span>
+            </a>
+            <a id="link-fiscalizacion-backend" href="http://localhost:8082" target="_blank"
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                API / Backend
+              </span>
+              <span class="text-gray-400 text-xs">:8082</span>
+            </a>
+          </div>
+          <p class="text-gray-600 text-xs">Contenedores: <code class="text-gray-500">fiscalizacion_backend · fiscalizacion_frontend · fiscalizacion_nginx</code></p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Infraestructura compartida ─────────────────────────────── -->
+    <section>
+      <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Infraestructura compartida</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="font-semibold text-base">pgAdmin 4</h3>
+              <p class="text-gray-500 text-sm mt-0.5">Administración de base de datos</p>
+            </div>
+            <span class="bg-teal-900/50 text-teal-300 text-xs px-2.5 py-1 rounded-full font-medium">Siempre activo</span>
+          </div>
+          <a href="http://localhost:5050" target="_blank"
+             class="flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 hover:bg-teal-700 rounded-xl text-sm transition-colors group">
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-teal-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+              Abrir pgAdmin
+            </span>
+            <span class="text-gray-400 group-hover:text-teal-200 text-xs">:5050</span>
+          </a>
+          <p class="text-gray-600 text-xs">Host de conexión: <code class="text-gray-400">postgres</code> · Puerto: <code class="text-gray-400">5432</code> · Maintenance DB: <code class="text-gray-400">postgres</code></p>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="font-semibold text-base">PostgreSQL 14</h3>
+              <p class="text-gray-500 text-sm mt-0.5">Base de datos compartida · sin UI</p>
+            </div>
+            <span class="bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">Siempre activo</span>
+          </div>
+          <div class="text-sm space-y-1.5 text-gray-400">
+            <div class="flex gap-2"><span class="text-gray-600 w-20">Host</span><code>localhost:5432</code></div>
+            <div class="flex gap-2"><span class="text-gray-600 w-20">Contenedor</span><code>shared_postgres</code></div>
+            <div class="flex gap-2"><span class="text-gray-600 w-20">DBs</span><code>ayudando · emergencias · fiscalizacion</code></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Guía de configuración ──────────────────────────────────── -->
+    <section>
+      <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Cómo configurar el entorno</h2>
+      <div class="space-y-4">
+
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl group" open>
+          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+            <span class="flex items-center gap-3">
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">1</span>
+              <span class="font-medium">Clonar el repo y crear el <code class="text-blue-300">.env</code></span>
+            </span>
+            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
+            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">git clone &lt;repo-url&gt;
+cd container-laravel-ionic-postgres
+cp .env.example .env</pre>
+            <p class="text-gray-400">Editá <code class="text-yellow-300">.env</code> y completá las variables marcadas con <code>change_me</code>:</p>
+            <ul class="list-disc list-inside space-y-1 text-gray-400 text-xs">
+              <li><code>POSTGRES_PASSWORD</code> — contraseña del servidor de base de datos</li>
+              <li><code>PGADMIN_PASSWORD</code> — acceso a pgAdmin</li>
+              <li><code>*_APP_KEY</code> — generá con el paso 4</li>
+              <li><code>*_JWT_SECRET</code> — string aleatorio largo por proyecto</li>
+              <li><code>*_MAIL_HOST/USERNAME/PASSWORD</code> — credenciales SMTP por proyecto</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl group">
+          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+            <span class="flex items-center gap-3">
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">2</span>
+              <span class="font-medium">Levantar infraestructura compartida</span>
+            </span>
+            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
+            <p class="text-gray-400">Hacelo <strong>una sola vez</strong>. Incluye postgres, pgAdmin y este dashboard.</p>
+            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">docker compose -f docker-compose.shared.yml up -d</pre>
+            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">docker compose -f docker-compose.shared.yml ps</pre>
+          </div>
+        </details>
+
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl group">
+          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+            <span class="flex items-center gap-3">
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">3</span>
+              <span class="font-medium">Levantar un proyecto específico</span>
+            </span>
+            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
+            <p class="text-gray-400">Solo uno a la vez. Levantá el shared primero.</p>
+            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">make up PROJECT=ayudando
+# ó
+make up PROJECT=emergencias
+# ó
+make up PROJECT=fiscalizacion</pre>
+          </div>
+        </details>
+
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl group">
+          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+            <span class="flex items-center gap-3">
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">4</span>
+              <span class="font-medium">Generar APP_KEY y migrar la base de datos</span>
+            </span>
+            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
+            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">make artisan cmd="key:generate" PROJECT=ayudando
+make migrate PROJECT=ayudando
+# ó importar dump existente:
+make db-import PROJECT=ayudando</pre>
+          </div>
+        </details>
+
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl group">
+          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+            <span class="flex items-center gap-3">
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">5</span>
+              <span class="font-medium">Conectar pgAdmin al servidor de base de datos</span>
+            </span>
+            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
+            <div class="bg-gray-950 rounded-xl p-4 text-xs space-y-1">
+              <div class="flex gap-4"><span class="text-gray-500 w-28">Host</span><code class="text-yellow-300">postgres</code><span class="text-gray-600 ml-2">(nombre del servicio, NO localhost)</span></div>
+              <div class="flex gap-4"><span class="text-gray-500 w-28">Port</span><code class="text-yellow-300">5432</code></div>
+              <div class="flex gap-4"><span class="text-gray-500 w-28">Username</span><code class="text-yellow-300">postgres</code></div>
+              <div class="flex gap-4"><span class="text-gray-500 w-28">Maintenance DB</span><code class="text-yellow-300">postgres</code></div>
+              <div class="flex gap-4"><span class="text-gray-500 w-28">Password</span><code class="text-yellow-300">valor de POSTGRES_PASSWORD</code></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="bg-gray-900 border border-amber-900/40 rounded-2xl group">
+          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+            <span class="flex items-center gap-3">
+              <span class="w-6 h-6 bg-amber-700 text-white text-xs font-bold rounded-full flex items-center justify-center">!</span>
+              <span class="font-medium text-amber-300">Problemas frecuentes</span>
+            </span>
+            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-5 space-y-4 text-sm">
+            <div>
+              <p class="text-amber-300 font-medium">Backend no conecta a la DB</p>
+              <p class="text-gray-400 text-xs mb-1">Verificá que <code>shared_postgres</code> esté healthy. Causa más común: <code>POSTGRES_PASSWORD</code> vacío.</p>
+              <pre class="bg-gray-950 rounded-xl p-3 text-xs text-green-300">docker compose -f docker-compose.shared.yml ps</pre>
+            </div>
+            <div>
+              <p class="text-amber-300 font-medium">Frontend no detecta cambios</p>
+              <pre class="bg-gray-950 rounded-xl p-3 text-xs text-green-300">make restart PROJECT=ayudando</pre>
+            </div>
+            <div>
+              <p class="text-amber-300 font-medium">Conflicto de puertos</p>
+              <p class="text-gray-400 text-xs mb-1">Sobreescribí en el <code>.env</code>:</p>
+              <pre class="bg-gray-950 rounded-xl p-3 text-xs text-green-300">AYUDANDO_NGINX_PORT=8083
+AYUDANDO_FRONTEND_PORT=4203</pre>
+            </div>
+            <div>
+              <p class="text-amber-300 font-medium">Reset total de la DB</p>
+              <pre class="bg-gray-950 rounded-xl p-3 text-xs text-red-400"># ⚠️ Destruye todos los volúmenes
+docker compose -f docker-compose.shared.yml down -v
+docker compose -f docker-compose.shared.yml up -d
+make db-import PROJECT=ayudando</pre>
+            </div>
+          </div>
+        </details>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-gray-800 mt-16 py-6 text-center text-xs text-gray-600">
+    Dev Dashboard · container-laravel-ionic-postgres · <a href="http://localhost:5050" class="hover:text-gray-400 transition-colors">pgAdmin :5050</a>
+  </footer>
+
+  <script>
+    // ── Config ────────────────────────────────────────────────────────────────
+    const SYSTEMS = [
+      { id: 'ayudando',      label: 'Ayudando',      color: 'blue'   },
+      { id: 'emergencias',   label: 'Emergencias',   color: 'orange' },
+      { id: 'fiscalizacion', label: 'Fiscalización', color: 'purple' },
+    ];
+
+    const COLOR_MAP = {
+      blue:   { hover: 'hover:bg-blue-700',   text: 'hover:text-blue-200'   },
+      orange: { hover: 'hover:bg-orange-700', text: 'hover:text-orange-200' },
+      purple: { hover: 'hover:bg-purple-700', text: 'hover:text-purple-200' },
+    };
+
+    // ── Health check ──────────────────────────────────────────────────────────
+    async function probe(path) {
+      try {
+        // nginx proxy handles the actual TCP connection — any response = up
+        const res = await fetch(path, { signal: AbortSignal.timeout(4000) });
+        return res.status < 500; // 200, 301, 404 all mean the server is running
+      } catch {
+        return false;
+      }
+    }
+
+    async function checkSystem(sys) {
+      const dot   = document.getElementById(`dot-${sys.id}`);
+      const label = document.getElementById(`label-${sys.id}`);
+      const badge = document.getElementById(`badge-${sys.id}`);
+      const linkFe = document.getElementById(`link-${sys.id}-frontend`);
+      const linkBe = document.getElementById(`link-${sys.id}-backend`);
+      const col    = COLOR_MAP[sys.color];
+
+      // Checking state
+      dot.className   = 'w-2 h-2 rounded-full dot-checking';
+      label.textContent = 'verificando…';
+      badge.className = 'flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium';
+
+      const [feUp, beUp] = await Promise.all([
+        probe(`/health/${sys.id}/frontend`),
+        probe(`/health/${sys.id}/backend`),
+      ]);
+
+      const up = feUp || beUp;
+
+      // Badge
+      if (up) {
+        dot.className   = 'w-2 h-2 rounded-full dot-up';
+        label.textContent = 'activo';
+        badge.className = 'flex items-center gap-1.5 bg-green-900/50 text-green-300 text-xs px-2.5 py-1 rounded-full font-medium';
+      } else {
+        dot.className   = 'w-2 h-2 rounded-full dot-down';
+        label.textContent = 'inactivo';
+        badge.className = 'flex items-center gap-1.5 bg-gray-800 text-gray-500 text-xs px-2.5 py-1 rounded-full font-medium';
+      }
+
+      // Links — enable only if the respective service is up
+      setLink(linkFe, feUp, col);
+      setLink(linkBe, beUp, col);
+    }
+
+    function setLink(el, active, col) {
+      if (active) {
+        el.classList.remove('opacity-50', 'pointer-events-none');
+        el.classList.add(col.hover);
+        el.querySelectorAll('.text-gray-400').forEach(s => s.classList.add(col.text));
+      } else {
+        el.classList.add('opacity-50', 'pointer-events-none');
+        el.classList.remove(col.hover);
+        el.querySelectorAll('.text-gray-400').forEach(s => s.classList.remove(col.text));
+      }
+    }
+
+    async function checkAll() {
+      const icon = document.getElementById('refresh-icon');
+      icon.style.animation = 'spin 0.8s linear infinite';
+      await Promise.all(SYSTEMS.map(checkSystem));
+      icon.style.animation = '';
+    }
+
+    // Auto-check on load + every 30 seconds
+    checkAll();
+    setInterval(checkAll, 30000);
+  </script>
+
+</body>
+</html>

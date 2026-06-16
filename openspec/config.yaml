@@ -1,0 +1,62 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Docker Compose (PostgreSQL 14, PHP 8.1-FPM/Laravel 8, Nginx 1.25, Node 18/Ionic-Angular 17, Redis 7)
+  Architecture: Infrastructure-only repo; app source lives in `ayudando/` (separate repo, never modified here)
+  Testing: PHPUnit (Laravel backend), Karma+Jasmine (Angular frontend), Protractor (E2E, deprecated)
+  Style: Conventional commits; Makefile-driven Docker orchestration
+  Constraints: `ayudando/` is gitignored — all Docker/infra files go in repo root or `docker/`
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Infrastructure changes must not modify `ayudando/` source
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    - Follow existing code patterns
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: ""
+    build_command: "docker compose build --no-cache"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
+
+testing:
+  backend:
+    runner: phpunit
+    command: "docker exec ayudando_backend php artisan test"
+    config: ayudando/server/phpunit.xml
+    layers:
+      unit: true
+      feature: true
+      e2e: false
+    coverage:
+      available: true
+      command: "docker exec ayudando_backend ./vendor/bin/phpunit --coverage-text"
+  frontend:
+    runner: karma+jasmine
+    command: "docker exec ayudando_frontend npm test -- --watch=false"
+    config: ayudando/frontend/karma.conf.js (implicit via angular.json)
+    layers:
+      unit: true
+      integration: false
+      e2e: true
+    coverage:
+      available: true
+      command: "docker exec ayudando_frontend npm test -- --watch=false --code-coverage"
+  quality:
+    linter:
+      backend: ~
+      frontend: "docker exec ayudando_frontend npm run lint"
+    formatter: ~
+    type_checker: "docker exec ayudando_frontend npx tsc --noEmit"

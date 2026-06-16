@@ -1,6 +1,42 @@
-# Enforce LF for all shell scripts and Docker-related files
-*.sh        text eol=lf
-Dockerfile  text eol=lf
-Makefile    text eol=lf
-*.conf      text eol=lf
-*.env*      text eol=lf
+# ─── Default: normalize all text files to LF on commit ──────────────────────
+* text=auto eol=lf
+
+# ─── Explicitly LF — scripts and Docker files must never have CRLF ───────────
+*.sh          text eol=lf
+*.bash        text eol=lf
+Dockerfile    text eol=lf
+Makefile      text eol=lf
+
+# ─── Config & markup ─────────────────────────────────────────────────────────
+*.conf        text eol=lf
+*.yml         text eol=lf
+*.yaml        text eol=lf
+*.json        text eol=lf
+*.env         text eol=lf
+*.env.example text eol=lf
+*.md          text eol=lf
+*.txt         text eol=lf
+*.html        text eol=lf
+*.css         text eol=lf
+*.js          text eol=lf
+*.ts          text eol=lf
+*.php         text eol=lf
+*.ini         text eol=lf
+*.gitignore   text eol=lf
+*.gitattributes text eol=lf
+
+# ─── Binary — never touch line endings ───────────────────────────────────────
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.svg   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.tar   binary
+*.gz    binary
+*.zip   binary
+*.pdf   binary
