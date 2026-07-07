@@ -28,7 +28,7 @@ RUN curl -fsSL https://services.gradle.org/distributions/gradle-${GRADLE_VERSION
 ENV PATH="/opt/gradle-${GRADLE_VERSION}/bin:${PATH}"
 
 RUN npm install -g \
-    @ionic/cli@8 \
+    @ionic/cli@7.2.1 \
     @angular/cli@20 \
     cordova@12 \
     --legacy-peer-deps
