@@ -135,6 +135,24 @@ services:
       timeout: 3s
       retries: 5
 
+  # ─── Android builder (Cordova AAB) ──────────────────────────────────────────
+  android-builder:
+    build:
+      context: .
+      dockerfile: docker/android-builder/Dockerfile
+    container_name: fiscalizacion_android_builder
+    volumes:
+      - ./src/fiscalizacion/frontend:/app
+      - fiscalizacion_android_builder_node_modules:/app/node_modules
+      - ./secrets/keystore:/keystore:ro
+    environment:
+      BUILD_MODE: ${BUILD_MODE:-debug}
+      KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD:-}
+      KEY_ALIAS: ${KEY_ALIAS:-release}
+      KEY_PASSWORD: ${KEY_PASSWORD:-}
+    networks:
+      - fiscalizacion_net
+
 networks:
   fiscalizacion_net:
     name: fiscalizacion_net
@@ -146,3 +164,4 @@ networks:
 volumes:
   fiscalizacion_node_modules:
   fiscalizacion_angular_cache:
+  fiscalizacion_android_builder_node_modules:
