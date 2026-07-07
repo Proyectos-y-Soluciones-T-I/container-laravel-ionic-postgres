@@ -7,6 +7,11 @@ ENV ANDROID_SDK_MANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 
 RUN apt-get update && apt-get install -y bash curl unzip git python3 make g++
 
+# Node.js 20 (eclipse-temurin JDK images ship no Node)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    node --version && npm --version
+
 RUN mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools" && \
     curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip -o /tmp/cmdline-tools.zip && \
     unzip -q /tmp/cmdline-tools.zip -d /tmp/ && \
