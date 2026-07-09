@@ -128,6 +128,111 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
 
 ---
 
+## Upgrading a Project's Stack Version
+
+Use this guide when a project needs to move to a new Node, Angular, Ionic, or PHP version.
+The container repo only changes Docker infrastructure — the app repo migration is a separate concern.
+
+### 1. Create a branch
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b feat/docker-node22-ng20-<project>
+```
+
+### 2. Update the Docker images (container repo)
+
+**Frontend — Node or Angular CLI version** (`docker/frontend/Dockerfile`):
+> `docker/frontend/Dockerfile` is **shared** — changing it affects all projects on next rebuild.
+
+```dockerfile
+# Bump Node
+FROM node:22-alpine
+
+# Bump Angular CLI global (matches the app's major Angular version)
+RUN npm install -g @ionic/cli@7.2.1 @angular/cli@20.3.31 --legacy-peer-deps
+```
+
+**Backend — PHP version** (`docker/php/Dockerfile`):
+
+```dockerfile
+# Use latest patch of the desired minor (avoid pinning Alpine minor — 3.17 is EOL)
+FROM php:8.1-fpm-alpine
+```
+
+### 3. Update the project compose file
+
+Edit `docker-compose.<project>.yml`:
+
+```yaml
+# Frontend service — increase NODE_OPTIONS if Angular version is heavier
+environment:
+  NODE_OPTIONS: --max_old_space_size=4096   # was 3072 for Angular 17
+
+# Update the comment on the service to reflect the new stack
+# ─── Ionic 8 / Angular 20 (dev server) ──
+```
+
+### 4. Rebuild and bring up
+
+```bash
+# Bring down first (not needed if stack was never up)
+docker compose -f docker-compose.<project>.yml --project-name <project> down
+
+# Rebuild images with no cache
+docker compose -f docker-compose.<project>.yml --project-name <project> build --no-cache
+
+# Start
+docker compose -f docker-compose.<project>.yml --project-name <project> up -d
+```
+
+### 5. Verify
+
+```bash
+# Check all containers are up
+docker compose -f docker-compose.<project>.yml --project-name <project> ps
+
+# Backend: PHP-FPM must show "ready to handle connections"
+docker logs <project>_backend --tail 20
+
+# Frontend: ng serve must be compiling (no SIGKILL = enough memory)
+docker logs <project>_frontend --tail 30
+
+# Version JSON written by entrypoint (auto-detected by dashboard)
+docker exec <project>_backend sh -c "cat /versions/<project>-backend.json"
+docker exec <project>_frontend sh -c "cat /versions/<project>-frontend.json"
+```
+
+### 6. Entrypoint changes — no rebuild needed
+
+`docker/php/entrypoint.sh` and `docker/frontend/entrypoint.sh` are **bind-mounted** at runtime.
+Changes take effect on `restart` without rebuilding:
+
+```bash
+# Edit entrypoint, then:
+docker compose -f docker-compose.<project>.yml --project-name <project> restart backend
+docker compose -f docker-compose.<project>.yml --project-name <project> restart frontend
+```
+
+### 7. Dashboard version pills
+
+The dashboard auto-detects versions from the shared `stack_versions` volume.
+No manual HTML update is needed — version pills update on next page load after the containers start.
+
+### Stack version reference
+
+| Project | Node | Angular | Ionic | PHP | Laravel |
+|---|---|---|---|---|---|
+| Ayudando | 20 | 17 | 7 | 8.1 | 8 |
+| Emergencias | 20 | 17 | 7 | 8.1 | 8 |
+| Fiscalización | 22 | 20 | 8 | 8.1 | 8 |
+
+> When upgrading Ayudando or Emergencias: follow the same pattern used for Fiscalización.
+> See branch `feature/docker-node22-ng20` as reference implementation.
+
+---
+
 ## Architecture Decisions
 
 **Two-layer stack**: shared infrastructure (postgres, pgadmin, dashboard) + per-project services.
