@@ -13,6 +13,12 @@ if [ ! -f "node_modules/.bin/ng" ]; then
     fi
 fi
 
+# Optional @ngx-formly — installs from npm registry on first start only
+if [ "${INSTALL_FORMLY:-no}" = "yes" ] && [ ! -d "node_modules/@ngx-formly" ]; then
+    echo "[${PROJECT}] Installing @ngx-formly/core..."
+    npm install @ngx-formly/core --legacy-peer-deps --no-audit --no-fund
+fi
+
 echo "[${PROJECT}] Ionic/Angular dev server on :4200"
 
 # Publish version info to shared dashboard volume (optional mount)

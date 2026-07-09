@@ -8,19 +8,17 @@
 #
 # What it does:
 #   1. Validates the project name.
-#   2. If @ngx-formly.zip is present, asks whether to install it.
+#   2. Asks whether to install @ngx-formly (installed via npm on first container start).
 #   3. Runs docker compose up -d with INSTALL_FORMLY set accordingly.
 
 set -euo pipefail
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 VALID_PROJECTS="ayudando emergencias fiscalizacion"
-FORMLY_ZIP="./@ngx-formly.zip"
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 red()    { printf '\033[0;31m%s\033[0m\n' "$*"; }
 green()  { printf '\033[0;32m%s\033[0m\n' "$*"; }
-yellow() { printf '\033[0;33m%s\033[0m\n' "$*"; }
 bold()   { printf '\033[1m%s\033[0m\n' "$*"; }
 
 # ─── Argument validation ─────────────────────────────────────────────────────
@@ -50,26 +48,20 @@ fi
 # ─── @ngx-formly prompt ──────────────────────────────────────────────────────
 export INSTALL_FORMLY=no
 
-if [ -f "$FORMLY_ZIP" ]; then
-    echo ""
-    bold "[@ngx-formly]"
-    yellow "  Found ${FORMLY_ZIP} in the project root."
-    printf "  Install @ngx-formly into the ${PROJECT} frontend from the local zip? [y/N] "
-    read -r answer </dev/tty
-    case "$answer" in
-        y|Y|yes|YES)
-            export INSTALL_FORMLY=yes
-            green "  @ngx-formly will be extracted on first container start."
-            ;;
-        *)
-            echo "  Skipping @ngx-formly installation."
-            ;;
-    esac
-    echo ""
-else
-    echo "  ${FORMLY_ZIP} not found — skipping formly prompt."
-    echo ""
-fi
+echo ""
+bold "[@ngx-formly]"
+printf "  Install @ngx-formly into the ${PROJECT} frontend? (installs via npm on first start) [y/N] "
+read -r answer </dev/tty
+case "$answer" in
+    y|Y|yes|YES)
+        export INSTALL_FORMLY=yes
+        green "  @ngx-formly will be installed via npm on first container start."
+        ;;
+    *)
+        echo "  Skipping @ngx-formly installation."
+        ;;
+esac
+echo ""
 
 # ─── Docker Compose up ───────────────────────────────────────────────────────
 bold "Starting ${PROJECT}..."

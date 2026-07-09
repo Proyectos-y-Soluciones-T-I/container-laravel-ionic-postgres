@@ -19,6 +19,13 @@
     .dot-up      { animation: pulse-green 2s ease infinite; background:#22c55e; }
     .dot-down    { background:#4b5563; }
     .dot-checking{ animation: spin 1s linear infinite; border:2px solid #6b7280; border-top-color:#93c5fd; border-radius:50%; background:transparent !important; }
+    .env-inp {
+      width:100%; background:#0f172a; border:1px solid #374151; border-radius:0.5rem;
+      padding:0.45rem 0.7rem; font-size:0.75rem; color:#e5e7eb; outline:none;
+      font-family:ui-monospace,monospace;
+    }
+    .env-inp::placeholder { color:#374151; }
+    .env-inp:focus { border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.2); }
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen">
@@ -333,6 +340,149 @@ make db-import PROJECT=ayudando</pre>
       </div>
     </section>
 
+    <!-- ── Generador de .env ─────────────────────────────────────────────────── -->
+    <section>
+      <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Generador de .env</h2>
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-800">
+          <p class="text-sm text-gray-400">Completá los campos y generá el archivo <code class="text-yellow-300">.env</code> listo para pegar en la raíz del repo. Los campos vacíos quedan en blanco.</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+
+          <!-- Compartido -->
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">Infraestructura compartida</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1"><label class="text-xs text-gray-500">POSTGRES_PASSWORD <span class="text-red-400">*</span></label><input id="ef-POSTGRES_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
+              <div class="space-y-1"><label class="text-xs text-gray-500">PGADMIN_PASSWORD <span class="text-red-400">*</span></label><input id="ef-PGADMIN_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
+            </div>
+          </div>
+
+          <!-- Ayudando -->
+          <details class="bg-gray-950/50 border border-gray-800 rounded-xl" open>
+            <summary class="px-5 py-3 cursor-pointer flex items-center justify-between list-none">
+              <span class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span class="text-sm font-medium">Ayudando</span>
+                <span class="text-xs text-gray-500">:8080 / :4200</span>
+              </span>
+              <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="px-5 pb-5 space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1"><label class="text-xs text-gray-500">AYUDANDO_APP_KEY <span class="text-red-400">*</span></label><input id="ef-AYUDANDO_APP_KEY" type="text" placeholder="base64:..." class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">AYUDANDO_JWT_SECRET <span class="text-red-400">*</span></label><input id="ef-AYUDANDO_JWT_SECRET" type="password" placeholder="string aleatorio largo" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">AYUDANDO_MAIL_HOST</label><input id="ef-AYUDANDO_MAIL_HOST" type="text" placeholder="smtp.ejemplo.com" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">AYUDANDO_MAIL_USERNAME</label><input id="ef-AYUDANDO_MAIL_USERNAME" type="text" placeholder="usuario@ejemplo.com" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">AYUDANDO_MAIL_PASSWORD</label><input id="ef-AYUDANDO_MAIL_PASSWORD" type="password" placeholder="contraseña SMTP" class="env-inp" autocomplete="off"/></div>
+              </div>
+              <label class="flex items-center gap-3 pt-1 cursor-pointer select-none">
+                <input type="checkbox" id="ef-AYUDANDO_INSTALL_FORMLY" class="w-4 h-4 accent-blue-500 cursor-pointer rounded"/>
+                <span class="text-sm text-gray-300">Instalar @ngx-formly</span>
+                <span class="text-xs text-gray-500">— <code class="text-gray-400">npm install @ngx-formly/core</code> al primer arranque</span>
+              </label>
+            </div>
+          </details>
+
+          <!-- Emergencias -->
+          <details class="bg-gray-950/50 border border-gray-800 rounded-xl">
+            <summary class="px-5 py-3 cursor-pointer flex items-center justify-between list-none">
+              <span class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                <span class="text-sm font-medium">Emergencias</span>
+                <span class="text-xs text-gray-500">:8081 / :4201</span>
+              </span>
+              <svg class="w-4 h-4 text-gray-500 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="px-5 pb-5 space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1"><label class="text-xs text-gray-500">EMERGENCIAS_APP_KEY <span class="text-red-400">*</span></label><input id="ef-EMERGENCIAS_APP_KEY" type="text" placeholder="base64:..." class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">EMERGENCIAS_JWT_SECRET <span class="text-red-400">*</span></label><input id="ef-EMERGENCIAS_JWT_SECRET" type="password" placeholder="string aleatorio largo" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">EMERGENCIAS_MAIL_HOST</label><input id="ef-EMERGENCIAS_MAIL_HOST" type="text" placeholder="smtp.ejemplo.com" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">EMERGENCIAS_MAIL_USERNAME</label><input id="ef-EMERGENCIAS_MAIL_USERNAME" type="text" placeholder="usuario@ejemplo.com" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">EMERGENCIAS_MAIL_PASSWORD</label><input id="ef-EMERGENCIAS_MAIL_PASSWORD" type="password" placeholder="contraseña SMTP" class="env-inp" autocomplete="off"/></div>
+              </div>
+              <label class="flex items-center gap-3 pt-1 cursor-pointer select-none">
+                <input type="checkbox" id="ef-EMERGENCIAS_INSTALL_FORMLY" class="w-4 h-4 accent-blue-500 cursor-pointer rounded"/>
+                <span class="text-sm text-gray-300">Instalar @ngx-formly</span>
+                <span class="text-xs text-gray-500">— <code class="text-gray-400">npm install @ngx-formly/core</code> al primer arranque</span>
+              </label>
+            </div>
+          </details>
+
+          <!-- Fiscalización -->
+          <details class="bg-gray-950/50 border border-gray-800 rounded-xl">
+            <summary class="px-5 py-3 cursor-pointer flex items-center justify-between list-none">
+              <span class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                <span class="text-sm font-medium">Fiscalización</span>
+                <span class="text-xs text-gray-500">:8082 / :4202</span>
+              </span>
+              <svg class="w-4 h-4 text-gray-500 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="px-5 pb-5 space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1"><label class="text-xs text-gray-500">FISCALIZACION_APP_KEY <span class="text-red-400">*</span></label><input id="ef-FISCALIZACION_APP_KEY" type="text" placeholder="base64:..." class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">FISCALIZACION_JWT_SECRET <span class="text-red-400">*</span></label><input id="ef-FISCALIZACION_JWT_SECRET" type="password" placeholder="string aleatorio largo" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">FISCALIZACION_MAIL_HOST</label><input id="ef-FISCALIZACION_MAIL_HOST" type="text" placeholder="smtp.ejemplo.com" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">FISCALIZACION_MAIL_USERNAME</label><input id="ef-FISCALIZACION_MAIL_USERNAME" type="text" placeholder="usuario@ejemplo.com" class="env-inp" autocomplete="off"/></div>
+                <div class="space-y-1"><label class="text-xs text-gray-500">FISCALIZACION_MAIL_PASSWORD</label><input id="ef-FISCALIZACION_MAIL_PASSWORD" type="password" placeholder="contraseña SMTP" class="env-inp" autocomplete="off"/></div>
+              </div>
+              <label class="flex items-center gap-3 pt-1 cursor-pointer select-none">
+                <input type="checkbox" id="ef-FISCALIZACION_INSTALL_FORMLY" class="w-4 h-4 accent-blue-500 cursor-pointer rounded"/>
+                <span class="text-sm text-gray-300">Instalar @ngx-formly</span>
+                <span class="text-xs text-gray-500">— <code class="text-gray-400">npm install @ngx-formly/core</code> al primer arranque</span>
+              </label>
+            </div>
+          </details>
+
+          <!-- Opciones avanzadas -->
+          <details class="bg-gray-950/50 border border-gray-700/50 rounded-xl">
+            <summary class="px-5 py-3 cursor-pointer flex items-center justify-between list-none">
+              <span class="text-sm text-gray-400">Opciones avanzadas <span class="text-xs text-gray-600">(puertos, env, mail global)</span></span>
+              <svg class="w-4 h-4 text-gray-500 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="px-5 pb-5 grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3">
+              <div class="space-y-1"><label class="text-xs text-gray-500">APP_ENV</label><input id="ef-APP_ENV" type="text" placeholder="local" class="env-inp"/></div>
+              <div class="space-y-1"><label class="text-xs text-gray-500">APP_DEBUG</label><input id="ef-APP_DEBUG" type="text" placeholder="true" class="env-inp"/></div>
+              <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_PORT</label><input id="ef-MAIL_PORT" type="text" placeholder="465" class="env-inp"/></div>
+              <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_ENCRYPTION</label><input id="ef-MAIL_ENCRYPTION" type="text" placeholder="tls" class="env-inp"/></div>
+              <div class="space-y-1 col-span-2 sm:col-span-1"><label class="text-xs text-gray-500 block mb-1">Puertos Ayudando</label><div class="flex gap-2"><input id="ef-AYUDANDO_NGINX_PORT" type="text" placeholder="8080" class="env-inp"/><input id="ef-AYUDANDO_FRONTEND_PORT" type="text" placeholder="4200" class="env-inp"/></div></div>
+              <div class="space-y-1 col-span-2 sm:col-span-1"><label class="text-xs text-gray-500 block mb-1">Puertos Emergencias</label><div class="flex gap-2"><input id="ef-EMERGENCIAS_NGINX_PORT" type="text" placeholder="8081" class="env-inp"/><input id="ef-EMERGENCIAS_FRONTEND_PORT" type="text" placeholder="4201" class="env-inp"/></div></div>
+              <div class="space-y-1 col-span-2 sm:col-span-1"><label class="text-xs text-gray-500 block mb-1">Puertos Fiscalización</label><div class="flex gap-2"><input id="ef-FISCALIZACION_NGINX_PORT" type="text" placeholder="8082" class="env-inp"/><input id="ef-FISCALIZACION_FRONTEND_PORT" type="text" placeholder="4202" class="env-inp"/></div></div>
+            </div>
+          </details>
+
+          <button onclick="generateEnv()"
+            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto">
+            Generar .env
+          </button>
+        </div>
+
+        <!-- Output -->
+        <div id="env-output" class="hidden px-6 pb-6 space-y-3 border-t border-gray-800 pt-5 mt-0">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-gray-300">Contenido del .env</p>
+            <div class="flex gap-2">
+              <button id="btn-copy-env" onclick="copyEnv(event)"
+                class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">
+                Copiar
+              </button>
+              <button onclick="downloadEnv()"
+                class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">
+                Descargar .env
+              </button>
+            </div>
+          </div>
+          <pre id="env-content" class="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs overflow-x-auto text-green-300 leading-relaxed max-h-96 overflow-y-auto"></pre>
+          <p class="text-xs text-amber-400/80">Copiá este contenido en el archivo <code>.env</code> en la raíz del repo. Nunca lo subas a git.</p>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <footer class="border-t border-gray-800 mt-16 py-6 text-center text-xs text-gray-600">
@@ -442,6 +592,79 @@ make db-import PROJECT=ayudando</pre>
     }
 
     SYSTEMS.forEach(s => loadVersions(s.id));
+
+    // ── .env generator ───────────────────────────────────────────────────────
+    function ev(id) {
+      const el = document.getElementById(id);
+      if (!el) return '';
+      return el.type === 'checkbox' ? (el.checked ? 'yes' : 'no') : el.value.trim();
+    }
+
+    function generateEnv() {
+      const L = (k, id, def = '') => `${k}=${ev(id) || def}`;
+      const lines = [
+        '# ── Infraestructura compartida ────────────────────────────────────────────────',
+        L('POSTGRES_PASSWORD',  'ef-POSTGRES_PASSWORD'),
+        L('POSTGRES_USER',      'ef-POSTGRES_USER', 'postgres'),
+        L('PGADMIN_PASSWORD',   'ef-PGADMIN_PASSWORD'),
+        '',
+        '# ── Opciones generales ────────────────────────────────────────────────────────',
+        L('APP_ENV',            'ef-APP_ENV',        'local'),
+        L('APP_DEBUG',          'ef-APP_DEBUG',       'true'),
+        L('MAIL_PORT',          'ef-MAIL_PORT',       '465'),
+        L('MAIL_ENCRYPTION',    'ef-MAIL_ENCRYPTION', 'tls'),
+        '',
+        '# ── Ayudando ──────────────────────────────────────────────────────────────────',
+        L('AYUDANDO_APP_KEY',           'ef-AYUDANDO_APP_KEY'),
+        L('AYUDANDO_JWT_SECRET',        'ef-AYUDANDO_JWT_SECRET'),
+        L('AYUDANDO_MAIL_HOST',         'ef-AYUDANDO_MAIL_HOST'),
+        L('AYUDANDO_MAIL_USERNAME',     'ef-AYUDANDO_MAIL_USERNAME'),
+        L('AYUDANDO_MAIL_PASSWORD',     'ef-AYUDANDO_MAIL_PASSWORD'),
+        L('AYUDANDO_INSTALL_FORMLY',    'ef-AYUDANDO_INSTALL_FORMLY',    'no'),
+        L('AYUDANDO_NGINX_PORT',        'ef-AYUDANDO_NGINX_PORT',         '8080'),
+        L('AYUDANDO_FRONTEND_PORT',     'ef-AYUDANDO_FRONTEND_PORT',      '4200'),
+        '',
+        '# ── Emergencias ───────────────────────────────────────────────────────────────',
+        L('EMERGENCIAS_APP_KEY',        'ef-EMERGENCIAS_APP_KEY'),
+        L('EMERGENCIAS_JWT_SECRET',     'ef-EMERGENCIAS_JWT_SECRET'),
+        L('EMERGENCIAS_MAIL_HOST',      'ef-EMERGENCIAS_MAIL_HOST'),
+        L('EMERGENCIAS_MAIL_USERNAME',  'ef-EMERGENCIAS_MAIL_USERNAME'),
+        L('EMERGENCIAS_MAIL_PASSWORD',  'ef-EMERGENCIAS_MAIL_PASSWORD'),
+        L('EMERGENCIAS_INSTALL_FORMLY', 'ef-EMERGENCIAS_INSTALL_FORMLY',  'no'),
+        L('EMERGENCIAS_NGINX_PORT',     'ef-EMERGENCIAS_NGINX_PORT',      '8081'),
+        L('EMERGENCIAS_FRONTEND_PORT',  'ef-EMERGENCIAS_FRONTEND_PORT',   '4201'),
+        '',
+        '# ── Fiscalización ─────────────────────────────────────────────────────────────',
+        L('FISCALIZACION_APP_KEY',           'ef-FISCALIZACION_APP_KEY'),
+        L('FISCALIZACION_JWT_SECRET',        'ef-FISCALIZACION_JWT_SECRET'),
+        L('FISCALIZACION_MAIL_HOST',         'ef-FISCALIZACION_MAIL_HOST'),
+        L('FISCALIZACION_MAIL_USERNAME',     'ef-FISCALIZACION_MAIL_USERNAME'),
+        L('FISCALIZACION_MAIL_PASSWORD',     'ef-FISCALIZACION_MAIL_PASSWORD'),
+        L('FISCALIZACION_INSTALL_FORMLY',    'ef-FISCALIZACION_INSTALL_FORMLY',  'no'),
+        L('FISCALIZACION_NGINX_PORT',        'ef-FISCALIZACION_NGINX_PORT',       '8082'),
+        L('FISCALIZACION_FRONTEND_PORT',     'ef-FISCALIZACION_FRONTEND_PORT',    '4202'),
+      ];
+      document.getElementById('env-content').textContent = lines.join('\n');
+      const out = document.getElementById('env-output');
+      out.classList.remove('hidden');
+      out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function copyEnv(event) {
+      const btn = event.currentTarget;
+      navigator.clipboard.writeText(document.getElementById('env-content').textContent).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copiado';
+        setTimeout(() => btn.textContent = orig, 2000);
+      });
+    }
+
+    function downloadEnv() {
+      const blob = new Blob([document.getElementById('env-content').textContent], { type: 'text/plain' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: '.env' });
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
   </script>
 
 </body>

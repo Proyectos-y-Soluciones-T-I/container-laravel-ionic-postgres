@@ -76,7 +76,6 @@ container-laravel-ionic-postgres/
 ├── Makefile                          ← Atajos opcionales (ver sección Make)
 ├── CHANGELOG.md                      ← Historial de cambios del proyecto
 ├── MOBILE_BUILD.md                   ← Guía de build y firma para Android/iOS
-├── @ngx-formly.zip                   ← Paquete local de @ngx-formly (instalación opcional)
 │
 ├── docker-compose.shared.yml         ← Infraestructura compartida (postgres, pgadmin, dashboard)
 ├── docker-compose.ayudando.yml       ← Servicios del proyecto Ayudando
@@ -405,15 +404,15 @@ Abrir http://localhost:5050 y crear un servidor con estos datos:
 
 ## @ngx-formly — instalación opcional
 
-`@ngx-formly` es una dependencia local (no publicada en npm) que se distribuye como `@ngx-formly.zip` en la raíz del repositorio.
+`@ngx-formly` se instala directamente desde npm registry. La instalación es opcional y se activa por variable de entorno al levantar el proyecto.
 
 ### Instalación interactiva (recomendada)
 
-El script `scripts/setup.sh` detecta el zip y pregunta antes de levantar el contenedor:
+El script `scripts/setup.sh` pregunta antes de levantar el contenedor:
 
 ```bash
 bash scripts/setup.sh ayudando
-# → Found @ngx-formly.zip. Install? [y/N]
+# → Install @ngx-formly into the ayudando frontend? [y/N]
 ```
 
 O con Make:
@@ -424,22 +423,22 @@ make setup PROJECT=ayudando
 
 ### Instalación manual vía env var
 
-Si preferís controlar la instalación directamente:
-
 ```bash
-INSTALL_FORMLY=yes docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
+AYUDANDO_INSTALL_FORMLY=yes docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
 ```
+
+### Vía dashboard (generador de .env)
+
+En `http://localhost:8090` hay un **Generador de .env** con checkbox por proyecto. Activar el checkbox genera el `.env` con `AYUDANDO_INSTALL_FORMLY=yes` incluido.
 
 ### Cómo funciona
 
-El zip se monta de forma **read-only** en `/tmp/ngx-formly.zip` dentro del contenedor.
 Al arrancar, `docker/frontend/entrypoint.sh` verifica:
 
 1. `INSTALL_FORMLY=yes`
-2. El zip existe en `/tmp/ngx-formly.zip`
-3. `node_modules/@ngx-formly` **no** existe todavía
+2. `node_modules/@ngx-formly` **no** existe todavía
 
-Si las tres condiciones se cumplen, extrae el zip en `node_modules/`. En arranques posteriores, el paquete ya está instalado y el paso se omite automáticamente.
+Si ambas condiciones se cumplen, ejecuta `npm install @ngx-formly/core --legacy-peer-deps`. En arranques posteriores el paquete ya está y el paso se omite.
 
 ### Verificar instalación
 
@@ -554,7 +553,7 @@ Prefijos: `AYUDANDO_`, `EMERGENCIAS_`, `FISCALIZACION_`
 
 | Variable | Default | Descripción |
 |---|---|---|
-| `INSTALL_FORMLY` | `no` | `yes` para extraer `@ngx-formly.zip` en `node_modules` al primer arranque |
+| `[PROJECT]_INSTALL_FORMLY` | `no` | `yes` instala `@ngx-formly/core` via npm al primer arranque del frontend |
 
 > Usá `scripts/setup.sh` o `make setup` para que te pregunte interactivamente en lugar de setear esta variable a mano.
 
@@ -698,16 +697,16 @@ Si las variables aparecen vacías: el `.env` no existe, tiene un typo, o el pref
 
 ### @ngx-formly no se instala
 
-Verificar que el zip existe en la raíz del repo:
-
-```bash
-ls @ngx-formly.zip
-```
-
 Verificar que el contenedor tiene la variable seteada:
 
 ```bash
 docker exec ayudando_frontend env | grep INSTALL_FORMLY
+```
+
+Si está en `no`, reiniciar con la variable correcta:
+
+```bash
+AYUDANDO_INSTALL_FORMLY=yes docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
 ```
 
 Si `INSTALL_FORMLY=no`, reiniciar con la variable correcta:
