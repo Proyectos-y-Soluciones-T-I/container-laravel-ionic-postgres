@@ -11,7 +11,7 @@ Docker infrastructure for the **Ayudando** project: Laravel 8 backend + Ionic/An
 | Image | Platforms | Description |
 |-------|-----------|-------------|
 | `your-dockerhub-user/ayudando-backend` | linux/amd64, linux/arm64, linux/arm/v7 | PHP 8.1-FPM + all Laravel extensions + JIT |
-| `your-dockerhub-user/ayudando-frontend` | linux/amd64, linux/arm64 | Node 18.16.1 + Ionic CLI 7 + Angular CLI 17 |
+| `your-dockerhub-user/ayudando-frontend` | linux/amd64, linux/arm64 | Node 22 + Ionic CLI 7.2.1 + Angular CLI 20 |
 
 ---
 
@@ -82,7 +82,7 @@ make db-import
 
 ## Backend Image — `ayudando-backend`
 
-**Base**: `php:8.1.17-fpm-alpine` (multi-stage — no build tools in final image)
+**Base**: `php:8.1-fpm-alpine` (multi-stage — no build tools in final image)
 
 **PHP extensions included:**
 - `pdo`, `pdo_pgsql`, `pgsql` — PostgreSQL
@@ -105,11 +105,11 @@ make db-import
 
 ## Frontend Image — `ayudando-frontend`
 
-**Base**: `node:18.16.1-alpine`
+**Base**: `node:22-alpine`
 
 **Tools included:**
-- Ionic CLI 7
-- Angular CLI 17
+- Ionic CLI 7.2.1
+- Angular CLI 20
 - `npm` with `--legacy-peer-deps` support
 
 **Performance features:**

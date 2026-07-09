@@ -17,6 +17,10 @@ docker-compose.override.yml
 docker/data/
 *.log
 
+# --- Node (dev tooling — husky/commitlint) ------------------------------------
+node_modules/
+package-lock.json
+
 # --- OS / Editor -------------------------------------------------------------
 .DS_Store
 Thumbs.db

@@ -49,8 +49,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ─── Frontend (Node 18 / Angular 17) — amd64 + arm64 ────────────────────────
-  # Note: Node 18 dropped official linux/arm/v7 support (32-bit ARM).
+  # ─── Frontend (Node 22 / Angular 20 / Ionic CLI 7) — amd64 + arm64 ──────────
+  # Note: Node 18+ dropped official linux/arm/v7 support (32-bit ARM).
   build-frontend:
     runs-on: ubuntu-latest
     steps:
