@@ -88,7 +88,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ─── Ionic / Angular 17 (dev server) ─────────────────────────────────────────
+  # ─── Ionic 8 / Angular 20 (dev server) ──────────────────────────────────────
   frontend:
     build:
       context: .
@@ -103,7 +103,7 @@ services:
     environment:
       PROJECT: fiscalizacion
       NODE_ENV: development
-      NODE_OPTIONS: --max_old_space_size=3072
+      NODE_OPTIONS: --max_old_space_size=4096
       NPM_CONFIG_PREFER_OFFLINE: "true"
     networks:
       - fiscalizacion_net
@@ -135,12 +135,17 @@ services:
       timeout: 3s
       retries: 5
 
-  # ─── Android builder (Cordova AAB) ──────────────────────────────────────────
+  # ─── Android builder (Cordova AAB) ─────────────────────────────────────────
+  # ponytail: only starts when explicitly triggered — not part of the dev stack
+  # Usage: docker compose -f docker-compose.fiscalizacion.yml --project-name fiscalizacion run --rm android-builder
+  #        docker compose ... run --rm android-builder --release
   android-builder:
     build:
       context: .
       dockerfile: docker/android-builder/Dockerfile
     container_name: fiscalizacion_android_builder
+    profiles:
+      - build
     volumes:
       - ./src/fiscalizacion/frontend:/app
       - fiscalizacion_android_builder_node_modules:/app/node_modules
