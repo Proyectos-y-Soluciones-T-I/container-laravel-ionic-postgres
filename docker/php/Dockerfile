@@ -1,6 +1,6 @@
 # ─── Stage 1: compile PHP extensions ─────────────────────────────────────────
 # Build tools (gcc, g++, make, autoconf) only needed here — NOT in final image.
-FROM php:8.1.17-fpm-alpine AS builder
+FROM php:8.1-fpm-alpine AS builder
 
 RUN apk add --no-cache \
     libpng-dev \
@@ -30,7 +30,7 @@ RUN pecl install redis-6.1.0 \
     && docker-php-ext-enable redis
 
 # ─── Stage 2: runtime image (no build tools — ~150MB lighter) ─────────────────
-FROM php:8.1.17-fpm-alpine
+FROM php:8.1-fpm-alpine
 
 # Runtime shared libs only — no -dev, no compiler
 RUN apk add --no-cache \
