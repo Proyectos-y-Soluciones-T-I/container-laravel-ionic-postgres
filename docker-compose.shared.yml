@@ -79,16 +79,22 @@ services:
   dashboard:
     image: nginx:1.25-alpine
     container_name: shared_dashboard
+    # ponytail: bind 127.0.0.1 only — env-data.json contains secrets;
+    # never expose the dashboard port to the LAN.
     ports:
-      - "${DASHBOARD_PORT:-8090}:80"
+      - "127.0.0.1:${DASHBOARD_PORT:-8090}:80"
     volumes:
       - ./docker/dashboard/index.html:/usr/share/nginx/html/index.html:ro
       - ./docker/dashboard/nginx.conf.template:/etc/nginx/conf.d/default.conf.template:ro
       - ./docker/dashboard/entrypoint.sh:/entrypoint.sh:ro
       - stack_versions:/usr/share/nginx/html/versions
+      - ./.:/repo:ro
     entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    # No shared_net — health proxies use HOST_IP (host gateway), not container
+    # DNS. Removing shared_net blocks cross-container curl shared_dashboard:80
+    # from other projects' backends (would otherwise read env-data.json).
     networks:
-      - shared_net
+      - default
     restart: unless-stopped
     deploy:
       resources:

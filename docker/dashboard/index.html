@@ -207,6 +207,75 @@
       </div>
     </section>
 
+    <!-- ── Generador de .env ─────────────────────────────────────────────────── -->
+    <section>
+      <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Generador de .env</h2>
+
+      <!-- Shared .env -->
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-200">Infraestructura compartida</p>
+            <p class="text-xs text-gray-500 mt-0.5">Genera <code class="text-yellow-300">.env</code> en la raíz del repo</p>
+          </div>
+          <code class="text-xs text-gray-600">.env</code>
+        </div>
+        <div class="p-6 space-y-4">
+          <details class="bg-gray-950/50 border border-gray-700/50 rounded-xl">
+            <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">
+              <span>Cargar desde archivo existente</span>
+              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="px-5 pb-5 pt-3 space-y-3">
+              <textarea id="shared-load-textarea" rows="4" placeholder="Pegá el contenido de .env aquí..." class="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 font-mono resize-y focus:outline-none focus:border-blue-600 transition-colors"></textarea>
+              <button onclick="loadSharedEnv()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Cargar valores</button>
+            </div>
+          </details>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-1"><label class="text-xs text-gray-500">POSTGRES_PASSWORD <span class="text-red-400">*</span></label><input id="ef-POSTGRES_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
+            <div class="space-y-1"><label class="text-xs text-gray-500">PGADMIN_PASSWORD <span class="text-red-400">*</span></label><input id="ef-PGADMIN_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
+          </div>
+          <details class="bg-gray-950/50 border border-gray-800 rounded-xl">
+            <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">
+              <span>Opciones avanzadas <span class="text-xs text-gray-600">(env, mail global)</span></span>
+              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="px-5 pb-5 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="space-y-1"><label class="text-xs text-gray-500">APP_ENV</label><input id="ef-APP_ENV" type="text" placeholder="local" class="env-inp"/></div>
+              <div class="space-y-1"><label class="text-xs text-gray-500">APP_DEBUG</label><input id="ef-APP_DEBUG" type="text" placeholder="true" class="env-inp"/></div>
+              <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_PORT</label><input id="ef-MAIL_PORT" type="text" placeholder="465" class="env-inp"/></div>
+              <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_ENCRYPTION</label><input id="ef-MAIL_ENCRYPTION" type="text" placeholder="tls" class="env-inp"/></div>
+            </div>
+          </details>
+          <button onclick="generateSharedEnv()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto">
+            Generar .env
+          </button>
+        </div>
+        <div id="shared-output" class="hidden px-6 pb-6 border-t border-gray-800 pt-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-gray-300">Contenido de <code class="text-yellow-300">.env</code></p>
+            <div class="flex gap-2">
+              <button onclick="copyContent('shared-content', this)" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Copiar</button>
+              <button onclick="downloadContent('shared-content', '.env')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Descargar .env</button>
+            </div>
+          </div>
+          <pre id="shared-content" class="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs overflow-x-auto text-green-300 leading-relaxed max-h-64 overflow-y-auto"></pre>
+          <p class="text-xs text-amber-400/80">Copiá este contenido en <code>.env</code> en la raíz del repo. Nunca lo subas a git.</p>
+        </div>
+      </div>
+
+      <!-- Per-project cards (dynamically added) -->
+      <p class="text-xs text-amber-400/60 mb-3">
+        Los valores se cargan desde el filesystem del repo a través del entrypoint. Editá los campos y descargá el archivo generado.
+      </p>
+      <div id="project-env-cards" class="space-y-4"></div>
+      <button onclick="addProjectCard()" class="flex items-center gap-2 mx-auto mt-4 px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Agregar proyecto
+      </button>
+
+    </section>
+
     <!-- ── Guía de configuración ──────────────────────────────────── -->
     <section>
       <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Cómo configurar el entorno</h2>
@@ -341,68 +410,6 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       </div>
     </section>
 
-    <!-- ── Generador de .env ─────────────────────────────────────────────────── -->
-    <section>
-      <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Generador de .env</h2>
-
-      <!-- Shared .env -->
-      <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden mb-6">
-        <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-200">Infraestructura compartida</p>
-            <p class="text-xs text-gray-500 mt-0.5">Genera <code class="text-yellow-300">.env</code> en la raíz del repo</p>
-          </div>
-          <code class="text-xs text-gray-600">.env</code>
-        </div>
-        <div class="p-6 space-y-4">
-          <details class="bg-gray-950/50 border border-gray-700/50 rounded-xl">
-            <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">
-              <span>Cargar desde archivo existente</span>
-              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div class="px-5 pb-5 pt-3 space-y-3">
-              <textarea id="shared-load-textarea" rows="4" placeholder="Pegá el contenido de .env aquí..." class="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 font-mono resize-y focus:outline-none focus:border-blue-600 transition-colors"></textarea>
-              <button onclick="loadSharedEnv()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Cargar valores</button>
-            </div>
-          </details>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="space-y-1"><label class="text-xs text-gray-500">POSTGRES_PASSWORD <span class="text-red-400">*</span></label><input id="ef-POSTGRES_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
-            <div class="space-y-1"><label class="text-xs text-gray-500">PGADMIN_PASSWORD <span class="text-red-400">*</span></label><input id="ef-PGADMIN_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
-          </div>
-          <details class="bg-gray-950/50 border border-gray-800 rounded-xl">
-            <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">
-              <span>Opciones avanzadas <span class="text-xs text-gray-600">(env, mail global)</span></span>
-              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div class="px-5 pb-5 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div class="space-y-1"><label class="text-xs text-gray-500">APP_ENV</label><input id="ef-APP_ENV" type="text" placeholder="local" class="env-inp"/></div>
-              <div class="space-y-1"><label class="text-xs text-gray-500">APP_DEBUG</label><input id="ef-APP_DEBUG" type="text" placeholder="true" class="env-inp"/></div>
-              <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_PORT</label><input id="ef-MAIL_PORT" type="text" placeholder="465" class="env-inp"/></div>
-              <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_ENCRYPTION</label><input id="ef-MAIL_ENCRYPTION" type="text" placeholder="tls" class="env-inp"/></div>
-            </div>
-          </details>
-          <button onclick="generateSharedEnv()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto">
-            Generar .env
-          </button>
-        </div>
-        <div id="shared-output" class="hidden px-6 pb-6 border-t border-gray-800 pt-5 space-y-3">
-          <div class="flex items-center justify-between">
-            <p class="text-sm font-medium text-gray-300">Contenido de <code class="text-yellow-300">.env</code></p>
-            <div class="flex gap-2">
-              <button onclick="copyContent('shared-content', this)" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Copiar</button>
-              <button onclick="downloadContent('shared-content', '.env')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Descargar .env</button>
-            </div>
-          </div>
-          <pre id="shared-content" class="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs overflow-x-auto text-green-300 leading-relaxed max-h-64 overflow-y-auto"></pre>
-          <p class="text-xs text-amber-400/80">Copiá este contenido en <code>.env</code> en la raíz del repo. Nunca lo subas a git.</p>
-        </div>
-      </div>
-
-      <!-- Per-project cards (rendered by JS) -->
-      <div id="project-env-cards" class="space-y-4"></div>
-
-    </section>
-
   </main>
 
   <footer class="border-t border-gray-800 mt-16 py-6 text-center text-xs text-gray-600">
@@ -514,12 +521,6 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
     SYSTEMS.forEach(s => loadVersions(s.id));
 
     // ── .env generator ───────────────────────────────────────────────────────
-    const ENV_PROJECTS = [
-      { id: 'ayudando',      label: 'Ayudando',     color: 'bg-blue-500',   ports: ':8080 / :4200' },
-      { id: 'emergencias',   label: 'Emergencias',  color: 'bg-orange-500', ports: ':8081 / :4201' },
-      { id: 'fiscalizacion', label: 'Fiscalización', color: 'bg-purple-500', ports: ':8082 / :4202' },
-    ];
-
     const SHARED_KEYS = ['POSTGRES_PASSWORD', 'POSTGRES_USER', 'PGADMIN_PASSWORD', 'APP_ENV', 'APP_DEBUG', 'MAIL_PORT', 'MAIL_ENCRYPTION'];
     const PROJECT_KEYS = ['APP_KEY', 'JWT_SECRET', 'MAIL_HOST', 'MAIL_USERNAME', 'MAIL_PASSWORD'];
 
@@ -527,6 +528,14 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       const el = document.getElementById(id);
       if (!el) return '';
       return el.type === 'checkbox' ? (el.checked ? 'yes' : 'no') : el.value.trim();
+    }
+
+    // ponytail: only used where projectName reaches innerHTML/attributes —
+    // stops DOM-XSS from malicious env filenames or user-typed names.
+    function escapeHtml(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function parseEnvText(text) {
@@ -549,19 +558,27 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       });
     }
 
-    function loadProjectEnv(project) {
-      const map = parseEnvText(document.getElementById(project + '-load-textarea').value);
+    function loadProjectFromTextarea(cardId) {
+      const text = document.getElementById(cardId + '-load-textarea').value;
+      const map = parseEnvText(text);
+      // Try to extract project name from first comment line
+      const firstLine = text.split('\n')[0].trim();
+      const nameMatch = firstLine.match(/^#\s*(\S+)\s*—\s*envs\//);
+      if (nameMatch) {
+        const nameInput = document.getElementById(cardId + '-name');
+        if (nameInput) nameInput.value = nameMatch[1];
+      }
       PROJECT_KEYS.forEach(function(k) {
-        const el = document.getElementById('ef-' + project + '-' + k);
+        const el = document.getElementById('ef-' + cardId + '-' + k);
         if (el && map[k] !== undefined) el.value = map[k];
       });
-      const formly = document.getElementById('ef-' + project + '-INSTALL_FORMLY');
+      const formly = document.getElementById('ef-' + cardId + '-INSTALL_FORMLY');
       if (formly && map['INSTALL_FORMLY'] !== undefined) formly.checked = map['INSTALL_FORMLY'] === 'yes';
       // Reload unknown keys as custom vars
-      const container = document.getElementById('custom-vars-' + project);
+      const container = document.getElementById('custom-vars-' + cardId);
       container.innerHTML = '';
       const known = new Set(PROJECT_KEYS.concat(['INSTALL_FORMLY']));
-      Object.keys(map).forEach(function(k) { if (!known.has(k)) addCustomVar(project, k, map[k]); });
+      Object.keys(map).forEach(function(k) { if (!known.has(k)) addCustomVar(cardId, k, map[k]); });
     }
 
     function generateSharedEnv() {
@@ -580,22 +597,30 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       showOutput('shared', lines.join('\n'));
     }
 
-    function generateProjectEnv(project) {
+    function generateProjectEnv(cardId) {
+      const projectName = document.getElementById(cardId + '-name').value.trim() || 'proyecto';
       const lines = [
-        '# ' + project + ' — envs/' + project + '.env',
-        'APP_KEY=' + ev('ef-' + project + '-APP_KEY'),
-        'JWT_SECRET=' + ev('ef-' + project + '-JWT_SECRET'),
-        'MAIL_HOST=' + ev('ef-' + project + '-MAIL_HOST'),
-        'MAIL_USERNAME=' + ev('ef-' + project + '-MAIL_USERNAME'),
-        'MAIL_PASSWORD=' + ev('ef-' + project + '-MAIL_PASSWORD'),
-        'INSTALL_FORMLY=' + ev('ef-' + project + '-INSTALL_FORMLY'),
+        '# ' + projectName + ' — envs/' + projectName + '.env',
+        'APP_KEY=' + ev('ef-' + cardId + '-APP_KEY'),
+        'JWT_SECRET=' + ev('ef-' + cardId + '-JWT_SECRET'),
+        'MAIL_HOST=' + ev('ef-' + cardId + '-MAIL_HOST'),
+        'MAIL_USERNAME=' + ev('ef-' + cardId + '-MAIL_USERNAME'),
+        'MAIL_PASSWORD=' + ev('ef-' + cardId + '-MAIL_PASSWORD'),
+        'INSTALL_FORMLY=' + ev('ef-' + cardId + '-INSTALL_FORMLY'),
       ];
-      document.querySelectorAll('#custom-vars-' + project + ' .custom-var-row').forEach(function(row) {
+      document.querySelectorAll('#custom-vars-' + cardId + ' .custom-var-row').forEach(function(row) {
         const k = row.querySelector('.custom-key') ? row.querySelector('.custom-key').value.trim() : '';
         const v = row.querySelector('.custom-val') ? row.querySelector('.custom-val').value.trim() : '';
         if (k) lines.push(k + '=' + v);
       });
-      showOutput(project, lines.join('\n'));
+      // Update dynamic labels
+      const outLabel = document.getElementById(cardId + '-out-label');
+      if (outLabel) outLabel.textContent = projectName;
+      const fileLabel = document.getElementById(cardId + '-file-label');
+      if (fileLabel) fileLabel.textContent = projectName;
+      // Auto-expand the card so the output is visible
+      document.getElementById(cardId).open = true;
+      showOutput(cardId, lines.join('\n'));
     }
 
     function showOutput(id, content) {
@@ -620,7 +645,7 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       URL.revokeObjectURL(a.href);
     }
 
-    function addCustomVar(project, key, val) {
+    function addCustomVar(cardId, key, val) {
       key = key || ''; val = val || '';
       const row = document.createElement('div');
       row.className = 'custom-var-row flex gap-2 items-center';
@@ -634,75 +659,139 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       del.className = 'text-gray-600 hover:text-red-400 transition-colors text-xs px-1 shrink-0'; del.textContent = '✕';
       del.onclick = function() { this.parentElement.remove(); };
       row.appendChild(keyInp); row.appendChild(eqSpan); row.appendChild(valInp); row.appendChild(del);
-      document.getElementById('custom-vars-' + project).appendChild(row);
+      document.getElementById('custom-vars-' + cardId).appendChild(row);
     }
 
-    function renderProjectCards() {
+    function addProjectCard(projectName, valuesMap) {
+      projectName = projectName || '';
+      const cardId = 'card-' + Math.random().toString(36).slice(2, 9);
       const container = document.getElementById('project-env-cards');
-      ENV_PROJECTS.forEach(function(p) {
-        const card = document.createElement('div');
-        card.className = 'bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden';
-        card.innerHTML = [
-          '<div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">',
-          '  <div class="flex items-center gap-3">',
-          '    <span class="w-2 h-2 rounded-full ' + p.color + '"></span>',
-          '    <span class="text-sm font-medium text-gray-200">' + p.label + '</span>',
-          '    <span class="text-xs text-gray-500">' + p.ports + '</span>',
-          '  </div>',
-          '  <code class="text-xs text-gray-600">envs/' + p.id + '.env</code>',
-          '</div>',
-          '<div class="p-6 space-y-4">',
-          '  <details class="bg-gray-950/50 border border-gray-700/50 rounded-xl">',
-          '    <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">',
-          '      <span>Cargar desde archivo existente</span>',
-          '      <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>',
-          '    </summary>',
-          '    <div class="px-5 pb-5 pt-3 space-y-3">',
-          '      <textarea id="' + p.id + '-load-textarea" rows="4" placeholder="Pegá el contenido de envs/' + p.id + '.env aquí..." class="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 font-mono resize-y focus:outline-none focus:border-blue-600 transition-colors"></textarea>',
-          '      <button onclick="loadProjectEnv(\'' + p.id + '\')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Cargar valores</button>',
-          '    </div>',
-          '  </details>',
-          '  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">',
-          '    <div class="space-y-1"><label class="text-xs text-gray-500">APP_KEY <span class="text-red-400">*</span></label><input id="ef-' + p.id + '-APP_KEY" type="text" placeholder="base64:..." class="env-inp" autocomplete="off"/></div>',
-          '    <div class="space-y-1"><label class="text-xs text-gray-500">JWT_SECRET <span class="text-red-400">*</span></label><input id="ef-' + p.id + '-JWT_SECRET" type="password" placeholder="string aleatorio largo" class="env-inp" autocomplete="off"/></div>',
-          '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_HOST</label><input id="ef-' + p.id + '-MAIL_HOST" type="text" placeholder="smtp.ejemplo.com" class="env-inp" autocomplete="off"/></div>',
-          '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_USERNAME</label><input id="ef-' + p.id + '-MAIL_USERNAME" type="text" placeholder="usuario@ejemplo.com" class="env-inp" autocomplete="off"/></div>',
-          '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_PASSWORD</label><input id="ef-' + p.id + '-MAIL_PASSWORD" type="password" placeholder="contraseña SMTP" class="env-inp" autocomplete="off"/></div>',
-          '  </div>',
-          '  <label class="flex items-center gap-3 cursor-pointer select-none">',
-          '    <input type="checkbox" id="ef-' + p.id + '-INSTALL_FORMLY" class="w-4 h-4 accent-blue-500 cursor-pointer rounded"/>',
-          '    <span class="text-sm text-gray-300">Instalar @ngx-formly</span>',
-          '    <span class="text-xs text-gray-500">— npm install @ngx-formly/core al primer arranque</span>',
-          '  </label>',
-          '  <div>',
-          '    <p class="text-xs text-gray-600 mb-2">Variables adicionales</p>',
-          '    <div id="custom-vars-' + p.id + '" class="space-y-2"></div>',
-          '    <button onclick="addCustomVar(\'' + p.id + '\')" class="mt-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs rounded-lg transition-colors flex items-center gap-1.5">',
-          '      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>',
-          '      Agregar variable',
-          '    </button>',
-          '  </div>',
-          '  <button onclick="generateProjectEnv(\'' + p.id + '\')" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto">',
-          '    Generar envs/' + p.id + '.env',
-          '  </button>',
-          '</div>',
-          '<div id="' + p.id + '-output" class="hidden px-6 pb-6 border-t border-gray-800 pt-5 space-y-3">',
-          '  <div class="flex items-center justify-between">',
-          '    <p class="text-sm font-medium text-gray-300">Contenido de <code class="text-yellow-300">envs/' + p.id + '.env</code></p>',
-          '    <div class="flex gap-2">',
-          '      <button onclick="copyContent(\'' + p.id + '-content\', this)" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Copiar</button>',
-          '      <button onclick="downloadContent(\'' + p.id + '-content\', \'' + p.id + '.env\')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Descargar</button>',
-          '    </div>',
-          '  </div>',
-          '  <pre id="' + p.id + '-content" class="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs overflow-x-auto text-green-300 leading-relaxed max-h-64 overflow-y-auto"></pre>',
-          '  <p class="text-xs text-amber-400/80">Copiá este contenido en <code>envs/' + p.id + '.env</code>. Nunca lo subas a git.</p>',
-          '</div>',
-        ].join('\n');
-        container.appendChild(card);
+      const card = document.createElement('details');
+      card.className = 'bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden group';
+      card.id = cardId;
+      card.innerHTML = [
+        '<summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none border-b border-gray-800 hover:bg-gray-800/50 transition-colors [&::-webkit-details-marker]:hidden">',
+        '  <div class="flex items-center gap-3">',
+        '    <span class="w-2 h-2 rounded-full bg-gray-500"></span>',
+        '    <input type="text" id="' + cardId + '-name" placeholder="nombre-proyecto" value="' + escapeHtml(projectName) + '" class="bg-transparent border-0 text-sm font-medium text-gray-200 focus:outline-none focus:text-blue-300 w-40" onclick="event.stopPropagation()" />',
+        '  </div>',
+        '  <div class="flex items-center gap-3">',
+        '    <code class="text-xs text-gray-600">envs/<span id="' + cardId + '-file-label">' + escapeHtml(projectName || '...') + '</span>.env</code>',
+        '    <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>',
+        '  </div>',
+        '</summary>',
+        '<div class="p-6 space-y-4">',
+        '  <details class="bg-gray-950/50 border border-gray-700/50 rounded-xl">',
+        '    <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">',
+        '      <span>Cargar desde archivo existente</span>',
+        '      <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>',
+        '    </summary>',
+        '    <div class="px-5 pb-5 pt-3 space-y-3">',
+        '      <textarea id="' + cardId + '-load-textarea" rows="4" placeholder="Pegá el contenido del .env aquí..." class="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 font-mono resize-y focus:outline-none focus:border-blue-600 transition-colors"></textarea>',
+        '      <div class="flex gap-2">',
+        '        <button onclick="loadProjectFromTextarea(\'' + cardId + '\')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Cargar valores</button>',
+        '        <input type="file" accept=".env,text/plain" id="' + cardId + '-file" class="hidden" onchange="loadProjectFromFile(\'' + cardId + '\', this)" />',
+        '        <button onclick="document.getElementById(\'' + cardId + '-file\').click()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Seleccionar archivo\u2026</button>',
+        '      </div>',
+        '    </div>',
+        '  </details>',
+        '  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">',
+        '    <div class="space-y-1"><label class="text-xs text-gray-500">APP_KEY <span class="text-red-400">*</span></label><input id="ef-' + cardId + '-APP_KEY" type="text" placeholder="base64:..." class="env-inp" autocomplete="off"/></div>',
+        '    <div class="space-y-1"><label class="text-xs text-gray-500">JWT_SECRET <span class="text-red-400">*</span></label><input id="ef-' + cardId + '-JWT_SECRET" type="password" placeholder="string aleatorio largo" class="env-inp" autocomplete="off"/></div>',
+        '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_HOST</label><input id="ef-' + cardId + '-MAIL_HOST" type="text" placeholder="smtp.ejemplo.com" class="env-inp" autocomplete="off"/></div>',
+        '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_USERNAME</label><input id="ef-' + cardId + '-MAIL_USERNAME" type="text" placeholder="usuario@ejemplo.com" class="env-inp" autocomplete="off"/></div>',
+        '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_PASSWORD</label><input id="ef-' + cardId + '-MAIL_PASSWORD" type="password" placeholder="contraseña SMTP" class="env-inp" autocomplete="off"/></div>',
+        '  </div>',
+        '  <label class="flex items-center gap-3 cursor-pointer select-none">',
+        '    <input type="checkbox" id="ef-' + cardId + '-INSTALL_FORMLY" class="w-4 h-4 accent-blue-500 cursor-pointer rounded"/>',
+        '    <span class="text-sm text-gray-300">Instalar @ngx-formly</span>',
+        '    <span class="text-xs text-gray-500">\u2014 npm install @ngx-formly/core al primer arranque</span>',
+        '  </label>',
+        '  <div>',
+        '    <p class="text-xs text-gray-600 mb-2">Variables adicionales</p>',
+        '    <div id="custom-vars-' + cardId + '" class="space-y-2"></div>',
+        '    <button onclick="addCustomVar(\'' + cardId + '\')" class="mt-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs rounded-lg transition-colors flex items-center gap-1.5">',
+        '      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>',
+        '      Agregar variable',
+        '    </button>',
+        '  </div>',
+        '  <button onclick="generateProjectEnv(\'' + cardId + '\')" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto">',
+        '    Generar envs/' + escapeHtml(projectName || '...') + '.env',
+        '  </button>',
+        '</div>',
+        '<div id="' + cardId + '-output" class="hidden px-6 pb-6 border-t border-gray-800 pt-5 space-y-3">',
+        '  <div class="flex items-center justify-between">',
+        '    <p class="text-sm font-medium text-gray-300">Contenido de <code class="text-yellow-300">envs/<span id="' + cardId + '-out-label">' + escapeHtml(projectName || '...') + '</span>.env</code></p>',
+        '    <div class="flex gap-2">',
+        '      <button onclick="copyContent(\'' + cardId + '-content\', this)" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Copiar</button>',
+        '      <button onclick="downloadContent(\'' + cardId + '-content\', (document.getElementById(\'' + cardId + '-name\').value || \'proyecto\') + \'.env\')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Descargar</button>',
+        '    </div>',
+        '  </div>',
+        '  <pre id="' + cardId + '-content" class="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs overflow-x-auto text-green-300 leading-relaxed max-h-64 overflow-y-auto"></pre>',
+        '  <p class="text-xs text-amber-400/80">Copi\u00e1 este contenido en <code>envs/' + escapeHtml(projectName || '...') + '.env</code>. Nunca lo subas a git.</p>',
+        '</div>',
+      ].join('\n');
+      container.appendChild(card);
+
+      // Pre-fill values from env-data.json if provided
+      if (valuesMap) {
+        PROJECT_KEYS.forEach(function(k) {
+          const el = document.getElementById('ef-' + cardId + '-' + k);
+          if (el && valuesMap[k] !== undefined) el.value = valuesMap[k];
+        });
+        const formly = document.getElementById('ef-' + cardId + '-INSTALL_FORMLY');
+        if (formly && valuesMap['INSTALL_FORMLY'] !== undefined) formly.checked = valuesMap['INSTALL_FORMLY'] === 'yes';
+        const known = new Set(PROJECT_KEYS.concat(['INSTALL_FORMLY']));
+        Object.keys(valuesMap).forEach(function(k) {
+          if (!known.has(k)) addCustomVar(cardId, k, valuesMap[k]);
+        });
+      }
+      return cardId;
+    }
+
+    function loadProjectFromFile(cardId, fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const textarea = document.getElementById(cardId + '-load-textarea');
+        textarea.value = e.target.result;
+        loadProjectFromTextarea(cardId);
+        // Set project name from filename
+        var name = file.name.replace(/\.env$/i, '');
+        const nameInput = document.getElementById(cardId + '-name');
+        if (nameInput) nameInput.value = name;
+      };
+      reader.readAsText(file);
+    }
+
+    function loadSharedFromData(sharedMap) {
+      SHARED_KEYS.forEach(function(k) {
+        const el = document.getElementById('ef-' + k);
+        if (el && sharedMap[k] !== undefined) el.value = sharedMap[k];
       });
     }
 
-    renderProjectCards();
+    async function init() {
+      try {
+        const res = await fetch('/env-data.json', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.shared && Object.keys(data.shared).length > 0) {
+          loadSharedFromData(data.shared);
+        }
+        if (data.projects) {
+          Object.keys(data.projects).forEach(function(key) {
+            addProjectCard(key, data.projects[key]);
+          });
+        }
+      } catch(e) {
+        // Dashboard works without env-data.json (404 = first-start, OK)
+        console.warn('env-data.json load failed:', e);
+      }
+    }
+
+    init();
   </script>
 
 </body>
