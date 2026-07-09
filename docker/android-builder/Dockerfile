@@ -7,8 +7,8 @@ ENV ANDROID_SDK_MANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 
 RUN apt-get update && apt-get install -y bash curl unzip git python3 make g++
 
-# Node.js 20 (eclipse-temurin JDK images ship no Node)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+# Node.js 22 (eclipse-temurin JDK images ship no Node)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     node --version && npm --version
 
@@ -26,7 +26,7 @@ RUN ${ANDROID_SDK_MANAGER} --install \
     "build-tools;35.0.0" \
     "platform-tools"
 
-ENV GRADLE_VERSION=8.12
+ENV GRADLE_VERSION=8.10.2
 RUN curl -fsSL https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -o /tmp/gradle.zip && \
     unzip -q /tmp/gradle.zip -d /opt/ && \
     rm /tmp/gradle.zip
@@ -34,7 +34,7 @@ ENV PATH="/opt/gradle-${GRADLE_VERSION}/bin:${PATH}"
 
 RUN npm install -g \
     @ionic/cli@7.2.1 \
-    @angular/cli@20 \
+    @angular/cli@20.3.31 \
     cordova@12 \
     --legacy-peer-deps
 
