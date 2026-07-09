@@ -1,6 +1,6 @@
 # ─── Stage 1: compile PHP extensions ─────────────────────────────────────────
 # Build tools (gcc, g++, make, autoconf) only needed here — NOT in final image.
-FROM php:8.1.17-fpm-alpine AS builder
+FROM php:8.1-fpm-alpine AS builder
 
 RUN apk add --no-cache \
     libpng-dev \
@@ -26,11 +26,19 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
         pcntl \
         opcache
 
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+RUN curl -fsSL https://github.com/phpredis/phpredis/archive/refs/tags/6.0.2.tar.gz -o /tmp/phpredis.tar.gz \
+    && mkdir -p /tmp/phpredis \
+    && tar -xzf /tmp/phpredis.tar.gz -C /tmp/phpredis --strip-components=1 \
+    && cd /tmp/phpredis \
+    && phpize \
+    && ./configure \
+    && make -j$(nproc) \
+    && make install \
+    && docker-php-ext-enable redis \
+    && rm -rf /tmp/phpredis /tmp/phpredis.tar.gz
 
 # ─── Stage 2: runtime image (no build tools — ~150MB lighter) ─────────────────
-FROM php:8.1.17-fpm-alpine
+FROM php:8.1-fpm-alpine
 
 # Runtime shared libs only — no -dev, no compiler
 RUN apk add --no-cache \
@@ -51,10 +59,7 @@ RUN apk add --no-cache \
 COPY --from=builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
 COPY --from=builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 
-RUN curl -sS https://getcomposer.org/installer | php -- \
-    --install-dir=/usr/local/bin \
-    --filename=composer \
-    --version=2.5.8
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 COPY docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

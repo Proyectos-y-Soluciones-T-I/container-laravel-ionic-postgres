@@ -13,18 +13,16 @@ if [ ! -f "node_modules/.bin/ng" ]; then
     fi
 fi
 
-# Install @ngx-formly from local zip if requested and not already present
-if [ "${INSTALL_FORMLY}" = "yes" ] && [ -f "/tmp/ngx-formly.zip" ]; then
-    if [ ! -d "node_modules/@ngx-formly" ]; then
-        echo "[${PROJECT}] Extracting @ngx-formly from local zip..."
-        unzip -q /tmp/ngx-formly.zip -d node_modules/
-        echo "[${PROJECT}] @ngx-formly installed successfully."
-    else
-        echo "[${PROJECT}] @ngx-formly already present, skipping extraction."
-    fi
-fi
-
 echo "[${PROJECT}] Ionic/Angular dev server on :4200"
+
+# Publish version info to shared dashboard volume (optional mount)
+if [ -d "/versions" ]; then
+    NODE_VER=$(node --version | tr -d 'v')
+    ANGULAR_VER=$(node -e "try{const p=require('/app/package.json');const d=Object.assign({},p.dependencies||{},p.devDependencies||{});const v=(d['@angular/core']||'').replace(/[^0-9.]/g,'');console.log(v.split('.')[0]||'')}catch(e){console.log('')}" 2>/dev/null)
+    IONIC_VER=$(node -e "try{const p=require('/app/package.json');const d=Object.assign({},p.dependencies||{},p.devDependencies||{});const v=(d['@ionic/angular']||'').replace(/[^0-9.]/g,'');console.log(v.split('.')[0]||'')}catch(e){console.log('')}" 2>/dev/null)
+    printf '{"node":"%s","angular":"%s","ionic":"%s"}\n' "${NODE_VER}" "${ANGULAR_VER}" "${IONIC_VER}" \
+        > /versions/${PROJECT}-frontend.json
+fi
 exec ng serve \
     --host 0.0.0.0 \
     --port 4200 \

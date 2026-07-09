@@ -41,6 +41,14 @@ php artisan route:cache  2>/dev/null || true
 
 echo "[${PROJECT}] PHP-FPM ready on :9000"
 
+# Publish version info to shared dashboard volume (optional mount)
+if [ -d "/versions" ]; then
+    PHP_VER=$(php -r "echo PHP_VERSION;" 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    LARAVEL_VER=$(php artisan --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "")
+    printf '{"php":"%s","laravel":"%s"}\n' "${PHP_VER}" "${LARAVEL_VER}" \
+        > /versions/${PROJECT}-backend.json
+fi
+
 # Queue worker — runs in background, restarts on failure
 php artisan queue:work \
     --timeout=300 \

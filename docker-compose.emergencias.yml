@@ -17,8 +17,10 @@ services:
     container_name: emergencias_backend
     volumes:
       - ./src/emergencias/server:/var/www/html
+      - ./docker/php/entrypoint.sh:/entrypoint.sh:ro
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/99-custom.ini
       - ./docker/php/zz-docker-user.conf:/usr/local/etc/php-fpm.d/zz-docker-user.conf
+      - stack_versions:/versions
     environment:
       APP_NAME: Emergencias
       PROJECT: emergencias
@@ -96,9 +98,10 @@ services:
     container_name: emergencias_frontend
     volumes:
       - ./src/emergencias/frontend:/app
+      - ./docker/frontend/entrypoint.sh:/entrypoint.sh:ro
       - emergencias_node_modules:/app/node_modules
       - emergencias_angular_cache:/app/.angular
-      - ./@ngx-formly.zip:/tmp/ngx-formly.zip:ro
+      - stack_versions:/versions
     ports:
       - "${EMERGENCIAS_FRONTEND_PORT:-4201}:4200"
     environment:
@@ -106,7 +109,6 @@ services:
       NODE_ENV: development
       NODE_OPTIONS: --max_old_space_size=3072
       NPM_CONFIG_PREFER_OFFLINE: "true"
-      INSTALL_FORMLY: ${INSTALL_FORMLY:-no}
     networks:
       - emergencias_net
     restart: unless-stopped
@@ -148,3 +150,6 @@ networks:
 volumes:
   emergencias_node_modules:
   emergencias_angular_cache:
+  stack_versions:
+    external: true
+    name: stack_versions
