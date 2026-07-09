@@ -1,10 +1,10 @@
-FROM node:18.16.1-alpine
+FROM node:20.19-alpine
 
 RUN apk add --no-cache git python3 make g++ vips-dev fftw-dev unzip
 
 RUN npm install -g \
-    @ionic/cli@7 \
-    @angular/cli@17 \
+    @ionic/cli@7.2.1 \
+    @angular/cli@20 \
     --legacy-peer-deps
 
 WORKDIR /app

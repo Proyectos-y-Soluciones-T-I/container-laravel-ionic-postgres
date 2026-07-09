@@ -1,5 +1,6 @@
 # --- Fuente de proyectos (repos separados) ------------------------------------
 src/
+secrets/
 
 # --- Variables de entorno (credenciales) -------------------------------------
 .env
