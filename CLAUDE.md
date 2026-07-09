@@ -233,6 +233,116 @@ No manual HTML update is needed — version pills update on next page load after
 
 ---
 
+## Android APK / AAB Generation (Cordova)
+
+The `android-builder` Docker image (JDK 17 + Android SDK 35 + Gradle 8.10.2 + Node 22 + Cordova 12)
+encapsulates the entire Cordova build pipeline. No native Android Studio or SDK install is needed on the host.
+
+### Cordova build phases
+
+| Phase | Command | What it does |
+|---|---|---|
+| 0. Install deps | `npm install --legacy-peer-deps` | Installs Angular + Ionic + Cordova packages |
+| 1. Platform add | `ionic cordova platform add android` | Creates `platforms/android/` — Cordova's native wrapper |
+| 2. Prepare | `ionic cordova prepare android --prod` | Syncs web build (`www/`) into the native project |
+| 3. Build (debug) | `ionic cordova build android --prod --debug` | Compiles Gradle → unsigned debug APK/AAB |
+| 4. Build (release) | `ionic cordova build android --prod --release` | Compiles Gradle → signed release AAB (needs keystore) |
+| 5. Generate keystore | `keytool -genkeypair ...` | Creates the signing identity (one-time) |
+| 6. Sign release | (see build.json below) | Embeds the keystore into the Gradle signing config |
+
+> `--prod` enables Angular's production optimization (AOT, tree-shaking, minification).
+> Without `--prod`, the web bundle runs in dev mode — larger, slower, debuggable.
+
+### AAB vs APK
+
+| Format | Output | For what |
+|---|---|---|
+| Debug AAB | `platforms/android/app/build/outputs/bundle/debug/app-debug.aab` | CI verification (no signing needed) |
+| Release AAB | `platforms/android/app/build/outputs/bundle/release/app-release.aab` | Google Play Store upload |
+| Debug APK | `…/outputs/apk/debug/app-debug.apk` | Direct installation on devices (testing) |
+| Release APK | `…/outputs/apk/release/app-release.apk` | Distribution outside Google Play |
+
+> By default the entrypoint produces **AAB** (`packageType: "bundle"`).
+> Change `packageType` to `"apk"` in `build.json` to produce APKs instead.
+
+### Keystore generation (one-time, local)
+
+```bash
+keytool -genkeypair \
+  -keystore release.keystore \
+  -alias release \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000 \
+  -storepass YOUR_STORE_PASSWORD \
+  -keypass YOUR_KEY_PASSWORD \
+  -dname "CN=Fiscalizacion, O=Proyectos y Soluciones T.I, C=CO"
+```
+
+> Store the keystore file and both passwords securely. The keystore goes in `secrets/keystore/`
+> (gitignored). If the keystore is lost, app updates can't be signed under the same identity.
+
+### Release signing with build.json
+
+The entrypoint auto-generates `build.json` from environment variables when `BUILD_MODE=release`:
+
+```json
+{
+  "android": {
+    "release": {
+      "keystore": "/keystore/release.keystore",
+      "storePassword": "${KEYSTORE_PASSWORD}",
+      "alias": "${KEY_ALIAS:-release}",
+      "password": "${KEY_PASSWORD}",
+      "packageType": "bundle"
+    }
+  }
+}
+```
+
+### Running the android-builder locally
+
+The android-builder has `profiles: [build]` — it does NOT start with `docker compose up -d`.
+It only runs when explicitly invoked.
+
+**Debug build:**
+```bash
+docker compose -f docker-compose.fiscalizacion.yml --project-name fiscalizacion run --rm android-builder --debug
+```
+
+**Release build (requires keystore in `secrets/` and env vars):**
+```bash
+BUILD_MODE=release \
+KEYSTORE_PASSWORD=your_store_pw \
+KEY_PASSWORD=your_key_pw \
+docker compose -f docker-compose.fiscalizacion.yml --project-name fiscalizacion run --rm android-builder --release
+```
+
+### CI/CD for Fiscalización Android builds
+
+**Yes, it's feasible.** The android-builder Docker image is self-contained: it has the JDK, Android SDK,
+Gradle, Node, and Cordova. GitHub Actions can use it to produce debug AABs on push and signed release
+AABs on tags.
+
+See the `ci/android-build` branch in the **fiscalizacion app repo** for the GitHub Actions workflow that:
+- Builds the android-builder image from the container repo
+- Runs `ionic cordova platform add android` + `ionic cordova build android --prod`
+- Caches Gradle and npm dependencies
+- Uploads the AAB as a build artifact
+- Signs release builds using GitHub Secrets (base64-encoded keystore)
+
+**Required GitHub Secrets for release signing:**
+
+| Secret | Value |
+|---|---|
+| `KEYSTORE_BASE64` | `base64 -w0 release.keystore` |
+| `KEYSTORE_PASSWORD` | Keystore store password |
+| `KEY_ALIAS` | Key alias (e.g. `release`) |
+| `KEY_PASSWORD` | Key password |
+| `CONTAINER_REPO_TOKEN` |PAT for cross-repo checkout of the android-builder image|
+
+---
+
 ## Architecture Decisions
 
 **Two-layer stack**: shared infrastructure (postgres, pgadmin, dashboard) + per-project services.
