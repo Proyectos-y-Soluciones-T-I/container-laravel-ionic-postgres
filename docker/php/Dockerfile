@@ -26,7 +26,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
         pcntl \
         opcache
 
-RUN pecl install redis \
+RUN pecl install redis-6.1.0 \
     && docker-php-ext-enable redis
 
 # ─── Stage 2: runtime image (no build tools — ~150MB lighter) ─────────────────
