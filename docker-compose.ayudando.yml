@@ -21,13 +21,15 @@ services:
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/99-custom.ini
       - ./docker/php/zz-docker-user.conf:/usr/local/etc/php-fpm.d/zz-docker-user.conf
       - stack_versions:/versions
+    env_file:
+      - .env
+      - envs/ayudando.env
     environment:
       APP_NAME: Ayudando
       PROJECT: ayudando
       APP_ENV: ${APP_ENV:-local}
-      APP_KEY: ${AYUDANDO_APP_KEY}
       APP_DEBUG: ${APP_DEBUG:-true}
-      APP_URL: ${APP_URL:-http://localhost:8080}
+      APP_URL: http://localhost:8080
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
@@ -43,14 +45,9 @@ services:
       REDIS_PORT: 6379
       REDIS_CLIENT: phpredis
       MAIL_MAILER: smtp
-      MAIL_HOST: ${AYUDANDO_MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT:-465}
-      MAIL_USERNAME: ${AYUDANDO_MAIL_USERNAME}
-      MAIL_PASSWORD: ${AYUDANDO_MAIL_PASSWORD}
-      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
-      MAIL_FROM_ADDRESS: ${AYUDANDO_MAIL_USERNAME}
       MAIL_FROM_NAME: Ayudando
-      JWT_SECRET: ${AYUDANDO_JWT_SECRET}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
     networks:
       - ayudando_net
       - shared_net
@@ -104,12 +101,13 @@ services:
       - stack_versions:/versions
     ports:
       - "${AYUDANDO_FRONTEND_PORT:-4200}:4200"
+    env_file:
+      - envs/ayudando.env
     environment:
       PROJECT: ayudando
       NODE_ENV: development
       NODE_OPTIONS: --max_old_space_size=3072
       NPM_CONFIG_PREFER_OFFLINE: "true"
-      INSTALL_FORMLY: ${AYUDANDO_INSTALL_FORMLY:-no}
     networks:
       - ayudando_net
     restart: unless-stopped

@@ -5,6 +5,8 @@ secrets/
 # --- Variables de entorno (credenciales) -------------------------------------
 .env
 !.env.example
+envs/*.env
+!envs/*.env.example
 
 # --- Herramientas internas (no deben ir al repo público) ---------------------
 .claude/

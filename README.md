@@ -70,8 +70,13 @@ Los proyectos se conectan a la base de datos compartida a través de la red `sha
 
 ```
 container-laravel-ionic-postgres/
-├── .env.example                      ← Variables con prefijos por proyecto
+├── .env.example                      ← Variables de infraestructura compartida
 ├── .env                              ← Creado localmente desde .env.example (no commitear)
+├── envs/
+│   ├── ayudando.env.example          ← Template de secretos del proyecto Ayudando
+│   ├── emergencias.env.example       ← Template de secretos del proyecto Emergencias
+│   ├── fiscalizacion.env.example     ← Template de secretos del proyecto Fiscalización
+│   └── *.env                         ← Creados localmente (ignorados por git)
 ├── .gitattributes                    ← Normalización LF para todo el repo
 ├── Makefile                          ← Atajos opcionales (ver sección Make)
 ├── CHANGELOG.md                      ← Historial de cambios del proyecto
@@ -184,21 +189,26 @@ src/<proyecto>/
 └── <proyecto>.tar ← Dump de base de datos (formato pg_restore)
 ```
 
-### 3. Crear el `.env`
+### 3. Crear los archivos `.env`
 
 ```bash
+# Infraestructura compartida
 cp .env.example .env
+
+# Secretos por proyecto (copiar solo los que vas a usar)
+cp envs/ayudando.env.example      envs/ayudando.env
+cp envs/emergencias.env.example   envs/emergencias.env
+cp envs/fiscalizacion.env.example envs/fiscalizacion.env
 ```
 
-Editar `.env` y completar las variables marcadas con `change_me`. Como mínimo:
+Editar cada archivo y completar los valores marcados con `change_me`:
 
-| Variable | Descripción |
+| Archivo | Variables requeridas |
 |---|---|
-| `POSTGRES_PASSWORD` | Contraseña del servidor PostgreSQL compartido |
-| `PGADMIN_PASSWORD` | Contraseña de pgAdmin |
-| `<PREFIJO>_APP_KEY` | Clave Laravel — generar en el paso 6 |
-| `<PREFIJO>_JWT_SECRET` | String aleatorio largo (mín. 64 chars) |
-| `<PREFIJO>_MAIL_HOST/USERNAME/PASSWORD` | Credenciales SMTP |
+| `.env` | `POSTGRES_PASSWORD`, `PGADMIN_PASSWORD` |
+| `envs/<proyecto>.env` | `APP_KEY` (paso 6), `JWT_SECRET`, `MAIL_HOST/USERNAME/PASSWORD` |
+
+> Tip: usá el **Generador de .env** en http://localhost:8090 para generar los contenidos con un formulario visual.
 
 ### 4. Levantar la infraestructura compartida
 
@@ -215,11 +225,11 @@ docker compose -f docker-compose.shared.yml ps
 
 ### 5. Levantar el proyecto
 
-**Opción A — Setup interactivo (recomendado para primera vez):**
+**Opción A — Setup automático (recomendado para primera vez):**
 
 ```bash
 bash scripts/setup.sh ayudando
-# Pregunta si instalar @ngx-formly desde el zip local antes de levantar el contenedor
+# Crea envs/ayudando.env desde el template si no existe y levanta el proyecto
 ```
 
 Equivalente con Make:
@@ -242,7 +252,7 @@ La primera vez tarda varios minutos — descarga imágenes, compila extensiones 
 docker exec ayudando_backend php artisan key:generate
 ```
 
-Copiar el valor generado (`base64:...`) y pegarlo en `.env` como `AYUDANDO_APP_KEY`.
+Copiar el valor generado (`base64:...`) y pegarlo en `envs/ayudando.env` como `APP_KEY`.
 
 ### 7. Importar la base de datos
 
@@ -408,28 +418,28 @@ Abrir http://localhost:5050 y crear un servidor con estos datos:
 
 ### Instalación interactiva (recomendada)
 
-El script `scripts/setup.sh` pregunta antes de levantar el contenedor:
+Activar `INSTALL_FORMLY=yes` en `envs/<proyecto>.env` antes de levantar el contenedor, o usar el Generador de .env en el dashboard (`http://localhost:8090`) y activar el checkbox.
 
 ```bash
-bash scripts/setup.sh ayudando
-# → Install @ngx-formly into the ayudando frontend? [y/N]
+# En envs/ayudando.env:
+INSTALL_FORMLY=yes
 ```
 
-O con Make:
+Luego levantar / reiniciar el contenedor:
 
 ```bash
-make setup PROJECT=ayudando
+docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
 ```
 
 ### Instalación manual vía env var
 
 ```bash
-AYUDANDO_INSTALL_FORMLY=yes docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
+INSTALL_FORMLY=yes docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
 ```
 
 ### Vía dashboard (generador de .env)
 
-En `http://localhost:8090` hay un **Generador de .env** con checkbox por proyecto. Activar el checkbox genera el `.env` con `AYUDANDO_INSTALL_FORMLY=yes` incluido.
+En `http://localhost:8090` hay un **Generador de .env** con checkbox por proyecto. Activar el checkbox genera `envs/<proyecto>.env` con `INSTALL_FORMLY=yes`.
 
 ### Cómo funciona
 
@@ -521,9 +531,14 @@ El proyecto válido es uno de: `ayudando`, `emergencias`, `fiscalizacion`.
 
 ## Variables de entorno
 
-El `.env` usa **prefijos** para aislar las variables de cada proyecto.
+Los archivos de entorno están separados en dos niveles:
 
-### Infraestructura compartida
+- **`.env`** — infraestructura compartida (postgres, pgAdmin, puertos host)
+- **`envs/<proyecto>.env`** — secretos de cada proyecto (APP_KEY, JWT, SMTP, etc.)
+
+Docker Compose inyecta ambos al contenedor via `env_file`. Las variables en `envs/<proyecto>.env` llegan **sin prefijo** directamente a Laravel y al entrypoint.
+
+### `.env` — Infraestructura compartida
 
 | Variable | Default | Descripción |
 |---|---|---|
@@ -531,31 +546,23 @@ El `.env` usa **prefijos** para aislar las variables de cada proyecto.
 | `POSTGRES_PASSWORD` | — | **Requerido** |
 | `PGADMIN_EMAIL` | `admin@local.dev` | Email de acceso a pgAdmin |
 | `PGADMIN_PASSWORD` | — | **Requerido** |
-| `POSTGRES_PORT` | `5432` | Puerto host de PostgreSQL |
-| `PGADMIN_PORT` | `5050` | Puerto host de pgAdmin |
-| `DASHBOARD_PORT` | `8090` | Puerto host del dashboard |
+| `APP_ENV` | `local` | Entorno Laravel |
+| `APP_DEBUG` | `true` | Modo debug |
+| `MAIL_PORT` | `465` | Puerto SMTP global |
+| `MAIL_ENCRYPTION` | `tls` | Cifrado SMTP global |
+| `<PROYECTO>_NGINX_PORT` | 8080/81/82 | Puerto host del backend |
+| `<PROYECTO>_FRONTEND_PORT` | 4200/01/02 | Puerto host del frontend |
 
-### Por proyecto
-
-Prefijos: `AYUDANDO_`, `EMERGENCIAS_`, `FISCALIZACION_`
+### `envs/<proyecto>.env` — Secretos por proyecto
 
 | Variable | Descripción |
 |---|---|
-| `<PREFIJO>_APP_KEY` | Clave de cifrado Laravel (`php artisan key:generate`) |
-| `<PREFIJO>_JWT_SECRET` | Secreto JWT |
-| `<PREFIJO>_MAIL_HOST` | Servidor SMTP |
-| `<PREFIJO>_MAIL_USERNAME` | Usuario SMTP |
-| `<PREFIJO>_MAIL_PASSWORD` | Contraseña SMTP |
-| `<PREFIJO>_NGINX_PORT` | Puerto host del backend (default: 8080/81/82) |
-| `<PREFIJO>_FRONTEND_PORT` | Puerto host del frontend (default: 4200/01/02) |
-
-### Opcionales
-
-| Variable | Default | Descripción |
-|---|---|---|
-| `[PROJECT]_INSTALL_FORMLY` | `no` | `yes` instala `@ngx-formly/core` via npm al primer arranque del frontend |
-
-> Usá `scripts/setup.sh` o `make setup` para que te pregunte interactivamente en lugar de setear esta variable a mano.
+| `APP_KEY` | Clave de cifrado Laravel (`php artisan key:generate`) |
+| `JWT_SECRET` | Secreto JWT (mín. 64 chars) |
+| `MAIL_HOST` | Servidor SMTP |
+| `MAIL_USERNAME` | Usuario SMTP |
+| `MAIL_PASSWORD` | Contraseña SMTP |
+| `INSTALL_FORMLY` | `yes` instala `@ngx-formly/core` via npm al primer arranque |
 
 ---
 
@@ -592,17 +599,11 @@ Copiar `docker-compose.ayudando.yml` y reemplazar:
 - Nombre de red: `ayudando_net` → `<nuevoproyecto>_net`
 - Puertos default: `8080` → `8083`, `4200` → `4203`
 
-### 3. Agregar variables al `.env.example`
+### 3. Agregar el archivo `envs/<proyecto>.env.example`
 
-```env
-NUEVOPROYECTO_APP_KEY=base64:GENERATE_WITH_php_artisan_key_generate
-NUEVOPROYECTO_JWT_SECRET=GENERATE_A_STRONG_SECRET
-NUEVOPROYECTO_MAIL_HOST=your.smtp.host
-NUEVOPROYECTO_MAIL_USERNAME=your@email.com
-NUEVOPROYECTO_MAIL_PASSWORD=change_me
-
-NUEVOPROYECTO_NGINX_PORT=8083
-NUEVOPROYECTO_FRONTEND_PORT=4203
+```bash
+cp envs/ayudando.env.example envs/nuevoproyecto.env.example
+# Editar: APP_KEY, JWT_SECRET, MAIL_*, INSTALL_FORMLY
 ```
 
 ### 4. Registrar en el Makefile (si usás make)
@@ -693,7 +694,8 @@ docker compose -f docker-compose.shared.yml restart dashboard
 docker compose -f docker-compose.ayudando.yml --project-name ayudando config
 ```
 
-Si las variables aparecen vacías: el `.env` no existe, tiene un typo, o el prefijo no coincide.
+Si las variables aparecen vacías: verificar que `envs/ayudando.env` existe y tiene valores correctos.
+`env_file` en el compose carga `.env` (compartido) y `envs/ayudando.env` (proyecto) — ninguno puede faltar.
 
 ### @ngx-formly no se instala
 
@@ -701,6 +703,12 @@ Verificar que el contenedor tiene la variable seteada:
 
 ```bash
 docker exec ayudando_frontend env | grep INSTALL_FORMLY
+```
+
+Si está en `no`, editar `envs/ayudando.env`, poner `INSTALL_FORMLY=yes`, y reiniciar:
+
+```bash
+docker compose -f docker-compose.ayudando.yml --project-name ayudando restart frontend
 ```
 
 Si está en `no`, reiniciar con la variable correcta:

@@ -110,11 +110,13 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
 
 ```bash
 cp .env.example .env
-# fill in credentials in .env
+cp envs/ayudando.env.example envs/ayudando.env
+# fill in credentials in .env and envs/ayudando.env
 docker compose -f docker-compose.shared.yml up -d
 # wait for shared_postgres to be (healthy)
 docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
 docker exec ayudando_backend php artisan key:generate
+# paste the generated key into envs/ayudando.env as APP_KEY=base64:...
 docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --no-acl < src/ayudando/ayudando.tar
 ```
 
@@ -370,18 +372,38 @@ See `docker/nginx/nginx.conf` and `docker/php/php.ini`.
 
 ---
 
-## Required `.env` Variables
+## Required Environment Files
+
+Two files per project — both are needed before running `docker compose up`.
+
+### `.env` (shared infrastructure)
 
 ```
 POSTGRES_PASSWORD
 PGADMIN_PASSWORD
-AYUDANDO_APP_KEY       # docker exec ayudando_backend php artisan key:generate
-AYUDANDO_JWT_SECRET
-AYUDANDO_MAIL_HOST
-AYUDANDO_MAIL_USERNAME
-AYUDANDO_MAIL_PASSWORD
-# Same pattern for EMERGENCIAS_ and FISCALIZACION_
+APP_ENV=local
+APP_DEBUG=true
+MAIL_PORT=465
+MAIL_ENCRYPTION=tls
+AYUDANDO_NGINX_PORT=8080        # optional, override default ports
+AYUDANDO_FRONTEND_PORT=4200
 ```
+
+### `envs/<project>.env` (per-project secrets, no prefix)
+
+```
+APP_KEY=            # docker exec ayudando_backend php artisan key:generate
+JWT_SECRET=
+MAIL_HOST=
+MAIL_USERNAME=
+MAIL_PASSWORD=
+INSTALL_FORMLY=no   # set to "yes" to install @ngx-formly/core on first start
+```
+
+Same structure for `envs/emergencias.env` and `envs/fiscalizacion.env`.
+
+> **Critical**: `environment:` block in docker-compose always wins over `env_file`.
+> Never repeat APP_KEY/JWT_SECRET/MAIL_* in the `environment:` block — they come from `env_file`.
 
 ---
 

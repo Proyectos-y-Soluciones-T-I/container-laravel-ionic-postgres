@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup.sh — Interactive project setup with optional @ngx-formly installation.
+# setup.sh — Bootstrap env files and start a project.
 #
 # Usage:
 #   ./scripts/setup.sh ayudando
@@ -8,20 +8,18 @@
 #
 # What it does:
 #   1. Validates the project name.
-#   2. Asks whether to install @ngx-formly (installed via npm on first container start).
-#   3. Runs docker compose up -d with INSTALL_FORMLY set accordingly.
+#   2. Creates .env and envs/<project>.env from .example if they don't exist.
+#   3. Exits with instructions if either file was just created (needs filling in).
+#   4. Runs docker compose up -d.
 
 set -euo pipefail
 
-# ─── Config ──────────────────────────────────────────────────────────────────
 VALID_PROJECTS="ayudando emergencias fiscalizacion"
 
-# ─── Helpers ─────────────────────────────────────────────────────────────────
-red()    { printf '\033[0;31m%s\033[0m\n' "$*"; }
-green()  { printf '\033[0;32m%s\033[0m\n' "$*"; }
-bold()   { printf '\033[1m%s\033[0m\n' "$*"; }
+red()   { printf '\033[0;31m%s\033[0m\n' "$*"; }
+green() { printf '\033[0;32m%s\033[0m\n' "$*"; }
+bold()  { printf '\033[1m%s\033[0m\n' "$*"; }
 
-# ─── Argument validation ─────────────────────────────────────────────────────
 PROJECT="${1:-}"
 
 if [ -z "$PROJECT" ]; then
@@ -33,10 +31,7 @@ fi
 
 valid=0
 for v in $VALID_PROJECTS; do
-    if [ "$PROJECT" = "$v" ]; then
-        valid=1
-        break
-    fi
+    if [ "$PROJECT" = "$v" ]; then valid=1; break; fi
 done
 
 if [ "$valid" -ne 1 ]; then
@@ -45,23 +40,31 @@ if [ "$valid" -ne 1 ]; then
     exit 1
 fi
 
-# ─── @ngx-formly prompt ──────────────────────────────────────────────────────
-export INSTALL_FORMLY=no
+# ─── Bootstrap env files ─────────────────────────────────────────────────────
+needs_fill=0
 
-echo ""
-bold "[@ngx-formly]"
-printf "  Install @ngx-formly into the ${PROJECT} frontend? (installs via npm on first start) [y/N] "
-read -r answer </dev/tty
-case "$answer" in
-    y|Y|yes|YES)
-        export INSTALL_FORMLY=yes
-        green "  @ngx-formly will be installed via npm on first container start."
-        ;;
-    *)
-        echo "  Skipping @ngx-formly installation."
-        ;;
-esac
-echo ""
+if [ ! -f ".env" ]; then
+    cp .env.example .env
+    bold "Created .env from .env.example"
+    needs_fill=1
+fi
+
+mkdir -p envs
+if [ ! -f "envs/${PROJECT}.env" ]; then
+    cp "envs/${PROJECT}.env.example" "envs/${PROJECT}.env"
+    bold "Created envs/${PROJECT}.env from example"
+    needs_fill=1
+fi
+
+if [ "$needs_fill" -eq 1 ]; then
+    echo ""
+    red "Fill in the required values before starting:"
+    echo "  .env                   — POSTGRES_PASSWORD, PGADMIN_PASSWORD"
+    echo "  envs/${PROJECT}.env    — APP_KEY, JWT_SECRET, MAIL_* credentials"
+    echo ""
+    echo "Tip: use the dashboard generator at http://localhost:8090"
+    exit 1
+fi
 
 # ─── Docker Compose up ───────────────────────────────────────────────────────
 bold "Starting ${PROJECT}..."
@@ -71,5 +74,5 @@ docker compose \
     up -d
 
 echo ""
-green "Done. To follow frontend logs:"
-echo "  docker compose -f docker-compose.${PROJECT}.yml --project-name ${PROJECT} logs -f frontend"
+green "Done. Follow logs with:"
+echo "  docker compose -f docker-compose.${PROJECT}.yml --project-name ${PROJECT} logs -f"
