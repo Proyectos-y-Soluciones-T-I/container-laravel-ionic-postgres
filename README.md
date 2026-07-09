@@ -134,6 +134,28 @@ docker --version
 docker compose version
 ```
 
+### Dependencias de desarrollo (git hooks)
+
+Este repositorio usa **Husky + commitlint** para validar mensajes de commit
+([Conventional Commits](https://www.conventionalcommits.org/)). Requiere Node
+instalado en el host — solo para los hooks, no para correr los contenedores.
+
+Instalá con el package manager que uses:
+
+```bash
+# npm
+npm install
+
+# pnpm
+pnpm install
+
+# bun
+bun install
+```
+
+Los hooks quedan activos automáticamente via el script `prepare`.
+Si no tenés Node, los hooks no bloquean el trabajo — solo no se validan los mensajes localmente.
+
 ---
 
 ## Configuración inicial
