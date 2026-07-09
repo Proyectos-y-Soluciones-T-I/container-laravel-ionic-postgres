@@ -26,8 +26,16 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
         pcntl \
         opcache
 
-RUN pecl install redis-6.1.0 \
-    && docker-php-ext-enable redis
+RUN curl -fsSL https://github.com/phpredis/phpredis/archive/refs/tags/6.0.2.tar.gz -o /tmp/phpredis.tar.gz \
+    && mkdir -p /tmp/phpredis \
+    && tar -xzf /tmp/phpredis.tar.gz -C /tmp/phpredis --strip-components=1 \
+    && cd /tmp/phpredis \
+    && phpize \
+    && ./configure \
+    && make -j$(nproc) \
+    && make install \
+    && docker-php-ext-enable redis \
+    && rm -rf /tmp/phpredis /tmp/phpredis.tar.gz
 
 # ─── Stage 2: runtime image (no build tools — ~150MB lighter) ─────────────────
 FROM php:8.1-fpm-alpine
