@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (Claude, Copilot, Cursor, etc.) when working with code in this repository.
 
 ## Command Style — CRITICAL
 
@@ -108,16 +108,36 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
 
 ### First-time setup
 
+> **Critical order**: set APP_KEY in the env file BEFORE bringing up the backend container.
+> The entrypoint writes `/var/www/html/.env` from env vars on every start — if APP_KEY is
+> empty when the container first starts, Laravel will refuse to boot.
+
 ```bash
+# 1. Copy env templates
 cp .env.example .env
 cp envs/ayudando.env.example envs/ayudando.env
-# fill in credentials in .env and envs/ayudando.env
+
+# 2. Generate APP_KEY without a running container
+docker run --rm php:8.1-fpm-alpine php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+# → paste the output into envs/ayudando.env as: APP_KEY=base64:...
+
+# 3. Fill in remaining credentials in .env and envs/ayudando.env
+
+# 4. Start shared infra and wait for postgres to be healthy
 docker compose -f docker-compose.shared.yml up -d
-# wait for shared_postgres to be (healthy)
+docker compose -f docker-compose.shared.yml ps   # shared_postgres must show (healthy)
+
+# 5. Start project (APP_KEY is already set — entrypoint will write the .env file)
 docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
-docker exec ayudando_backend php artisan key:generate
-# paste the generated key into envs/ayudando.env as APP_KEY=base64:...
+
+# 6. Import DB
 docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --no-acl < src/ayudando/ayudando.tar
+```
+
+**Mac / Linux note**: If you get `exec format error` on the backend, the entrypoint script has
+Windows line endings (CRLF). Fix it once:
+```bash
+docker run --rm -v "$(pwd)/docker/php/entrypoint.sh:/f" alpine sed -i 's/\r//' /f
 ```
 
 ### Reset DB entirely
@@ -366,7 +386,7 @@ See `docker/nginx/nginx.conf` and `docker/php/php.ini`.
 **Frontend polling**: `ng serve` runs with `--poll 1000` for Windows file-change detection.
 
 **Entrypoints auto-setup**:
-- Backend (`docker/php/entrypoint.sh`): runs `composer install`, `artisan storage:link` on first start.
+- Backend (`docker/php/entrypoint.sh`): regenerates `/var/www/html/.env` from container env vars on every start, then runs `composer install` and `artisan storage:link` if needed.
 - Frontend (`docker/frontend/entrypoint.sh`): runs `npm install --legacy-peer-deps` then `ng serve`.
 - Dashboard (`docker/dashboard/entrypoint.sh`): resolves host IP, renders nginx config, starts nginx.
 
@@ -392,8 +412,9 @@ AYUDANDO_FRONTEND_PORT=4200
 ### `envs/<project>.env` (per-project secrets, no prefix)
 
 ```
-APP_KEY=            # docker exec ayudando_backend php artisan key:generate
+APP_KEY=            # docker run --rm php:8.1-fpm-alpine php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
 JWT_SECRET=
+DB_DATABASE=ayudando  # nombre de la base de datos en PostgreSQL; override si usás un nombre distinto
 MAIL_HOST=
 MAIL_USERNAME=
 MAIL_PASSWORD=
@@ -408,6 +429,31 @@ Same structure for `envs/emergencias.env` and `envs/fiscalizacion.env`.
 ---
 
 ## Troubleshooting
+
+**APP_KEY vacío o inválido**: El entrypoint regenera `/var/www/html/.env` en cada arranque desde las
+variables de entorno. Si `APP_KEY` está vacío en `envs/<project>.env`, Laravel no va a bootear.
+Solución en un paso:
+```bash
+# 1. Generar la clave (sin contenedor corriendo)
+docker run --rm php:8.1-fpm-alpine php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+# 2. Pegar el valor en envs/<project>.env → APP_KEY=base64:...
+# 3. Recrear el backend para que tome el nuevo env_file
+docker compose -f docker-compose.<project>.yml --project-name <project> up -d --force-recreate backend
+```
+> `restart` NO es suficiente — el `env_file` solo se recarga al recrear el contenedor.
+
+**`exec format error` en Mac/Linux**: el entrypoint tiene line endings CRLF (Windows). Corregir:
+```bash
+docker run --rm -v "$(pwd)/docker/php/entrypoint.sh:/f" alpine sed -i 's/\r//' /f
+docker compose -f docker-compose.<project>.yml --project-name <project> up -d --force-recreate backend
+```
+
+**Permisos de storage en Mac/Linux**: si ves `Permission denied` en `storage/` o `bootstrap/cache/`,
+el entrypoint ya aplica `chown www-data` automáticamente. Si persiste, forzar:
+```bash
+docker exec <project>_backend chown -R www-data:www-data storage bootstrap/cache
+docker exec <project>_backend chmod -R 775 storage bootstrap/cache
+```
 
 **Backend can't reach DB**: `docker compose -f docker-compose.shared.yml ps` — `shared_postgres` must show `(healthy)`.
 Root cause is usually missing `POSTGRES_PASSWORD` in `.env`.

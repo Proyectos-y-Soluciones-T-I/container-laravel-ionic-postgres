@@ -33,7 +33,7 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: ayudando
+      DB_DATABASE: ${DB_DATABASE:-ayudando}
       DB_USERNAME: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       BROADCAST_DRIVER: log
