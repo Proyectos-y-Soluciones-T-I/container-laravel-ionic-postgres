@@ -77,14 +77,16 @@ services:
 
   # ─── Dev Dashboard (página de acceso a todos los sistemas) ──────────────────
   dashboard:
-    image: nginx:1.25-alpine
+    build:
+      context: ./docker/dashboard
+      dockerfile: Dockerfile
     container_name: shared_dashboard
     # ponytail: bind 127.0.0.1 only — env-data.json contains secrets;
     # never expose the dashboard port to the LAN.
     ports:
       - "127.0.0.1:${DASHBOARD_PORT:-8090}:80"
     volumes:
-      - ./docker/dashboard/index.html:/usr/share/nginx/html/index.html:ro
+      # nginx.conf.template is still bind-mounted so HOST_IP injection works at runtime
       - ./docker/dashboard/nginx.conf.template:/etc/nginx/conf.d/default.conf.template:ro
       - ./docker/dashboard/entrypoint.sh:/entrypoint.sh:ro
       - stack_versions:/usr/share/nginx/html/versions

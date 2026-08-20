@@ -4,225 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dev Dashboard</title>
+  <link rel="stylesheet" href="/tailwind.css" />
   <style>
-    /* ponytail: all tailwind utilities used in this file, inlined — no CDN needed */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 
-    /* ── Reset / base ──────────────────────────────────────────────────────── */
-    a { color: inherit; text-decoration: none; }
-    button { cursor: pointer; font-family: inherit; }
-    code { font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; }
-    pre  { font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; }
-    details > summary { list-style: none; }
-    details > summary::-webkit-details-marker { display: none; }
-
-    /* ── Layout utilities ──────────────────────────────────────────────────── */
-    .min-h-screen { min-height: 100vh; }
-    .max-w-6xl    { max-width: 72rem; }
-    .mx-auto      { margin-left: auto; margin-right: auto; }
-    .px-6  { padding-left: 1.5rem;  padding-right: 1.5rem; }
-    .py-4  { padding-top: 1rem;     padding-bottom: 1rem; }
-    .py-6  { padding-top: 1.5rem;   padding-bottom: 1.5rem; }
-    .py-10 { padding-top: 2.5rem;   padding-bottom: 2.5rem; }
-    .px-4  { padding-left: 1rem;    padding-right: 1rem; }
-    .px-3  { padding-left: .75rem;  padding-right: .75rem; }
-    .px-5  { padding-left: 1.25rem; padding-right: 1.25rem; }
-    .py-1  { padding-top: .25rem;   padding-bottom: .25rem; }
-    .py-1\.5 { padding-top: .375rem; padding-bottom: .375rem; }
-    .py-2  { padding-top: .5rem;    padding-bottom: .5rem; }
-    .py-2\.5 { padding-top: .625rem; padding-bottom: .625rem; }
-    .py-3  { padding-top: .75rem;   padding-bottom: .75rem; }
-    .py-5  { padding-top: 1.25rem;  padding-bottom: 1.25rem; }
-    .p-3   { padding: .75rem; }
-    .p-4   { padding: 1rem; }
-    .p-6   { padding: 1.5rem; }
-    .pt-3  { padding-top: .75rem; }
-    .pt-5  { padding-top: 1.25rem; }
-    .pb-5  { padding-bottom: 1.25rem; }
-    .pb-6  { padding-bottom: 1.5rem; }
-    .mt-0\.5 { margin-top: .125rem; }
-    .mt-2  { margin-top: .5rem; }
-    .mt-4  { margin-top: 1rem; }
-    .mb-2  { margin-bottom: .5rem; }
-    .mb-3  { margin-bottom: .75rem; }
-    .mb-6  { margin-bottom: 1.5rem; }
-    .ml-2  { margin-left: .5rem; }
-    .mt-16 { margin-top: 4rem; }
-    .w-2   { width: .5rem; }
-    .w-3   { width: .75rem; }
-    .w-4   { width: 1rem; }
-    .w-6   { width: 1.5rem; }
-    .w-8   { width: 2rem; }
-    .w-20  { width: 5rem; }
-    .w-28  { width: 7rem; }
-    .w-40  { width: 10rem; }
-    .w-full { width: 100%; }
-    .h-2   { height: .5rem; }
-    .h-3   { height: .75rem; }
-    .h-4   { height: 1rem; }
-    .h-6   { height: 1.5rem; }
-    .h-8   { height: 2rem; }
-    .flex  { display: flex; }
-    .grid  { display: grid; }
-    .hidden { display: none; }
-    .inline { display: inline; }
-    .items-center  { align-items: center; }
-    .items-start   { align-items: flex-start; }
-    .justify-between { justify-content: space-between; }
-    .justify-center  { justify-content: center; }
-    .flex-1    { flex: 1 1 0%; }
-    .flex-wrap { flex-wrap: wrap; }
-    .shrink-0  { flex-shrink: 0; }
-    .gap-1   { gap: .25rem; }
-    .gap-1\.5{ gap: .375rem; }
-    .gap-2   { gap: .5rem; }
-    .gap-3   { gap: .75rem; }
-    .gap-4   { gap: 1rem; }
-    .gap-5   { gap: 1.25rem; }
-    .space-y-1  > * + * { margin-top: .25rem; }
-    .space-y-1\.5 > * + * { margin-top: .375rem; }
-    .space-y-2  > * + * { margin-top: .5rem; }
-    .space-y-3  > * + * { margin-top: .75rem; }
-    .space-y-4  > * + * { margin-top: 1rem; }
-    .space-y-12 > * + * { margin-top: 3rem; }
-    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    @media (min-width: 640px) {
-      .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      .sm\:w-auto { width: auto; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    .overflow-hidden  { overflow: hidden; }
-    .overflow-x-auto  { overflow-x: auto; }
-    .overflow-y-auto  { overflow-y: auto; }
-    .max-h-64  { max-height: 16rem; }
-    .resize-y  { resize: vertical; }
-    .leading-relaxed { line-height: 1.625; }
-    .sticky { position: sticky; }
-    .top-0  { top: 0; }
-    .z-10   { z-index: 10; }
-    .border-b  { border-bottom-width: 1px; border-bottom-style: solid; }
-    .border-t  { border-top-width: 1px;    border-top-style: solid; }
-    .border    { border-width: 1px; border-style: solid; }
-    .rounded-lg   { border-radius: .5rem; }
-    .rounded-xl   { border-radius: .75rem; }
-    .rounded-2xl  { border-radius: 1rem; }
-    .rounded-full { border-radius: 9999px; }
-    .rounded      { border-radius: .25rem; }
-    .text-xs   { font-size: .75rem;  line-height: 1rem; }
-    .text-sm   { font-size: .875rem; line-height: 1.25rem; }
-    .text-base { font-size: 1rem;    line-height: 1.5rem; }
-    .text-lg   { font-size: 1.125rem; line-height: 1.75rem; }
-    .font-medium  { font-weight: 500; }
-    .font-semibold { font-weight: 600; }
-    .font-bold    { font-weight: 700; }
-    .uppercase    { text-transform: uppercase; }
-    .tracking-widest { letter-spacing: .1em; }
-    .text-center  { text-align: center; }
-    .list-inside  { list-style-position: inside; }
-    .list-disc    { list-style-type: disc; }
-    .list-none    { list-style: none; }
-    .select-none  { user-select: none; }
-    .opacity-50   { opacity: .5; }
-    .pointer-events-none { pointer-events: none; }
-    .transition-colors   { transition: color .15s ease, background-color .15s ease, border-color .15s ease; }
-    .transition-transform { transition: transform .15s ease; }
-    .backdrop-blur { backdrop-filter: blur(8px); }
-
-    /* ── Colors — bg ───────────────────────────────────────────────────────── */
-    .bg-gray-950  { background-color: #030712; }
-    .bg-gray-900  { background-color: #111827; }
-    .bg-gray-800  { background-color: #1f2937; }
-    .bg-gray-700  { background-color: #374151; }
-    .bg-blue-600  { background-color: #2563eb; }
-    .bg-blue-700  { background-color: #1d4ed8; }
-    .bg-blue-950  { background-color: #172554; }
-    .bg-green-950 { background-color: #052e16; }
-    .bg-teal-700  { background-color: #0f766e; }
-    .bg-amber-700 { background-color: #b45309; }
-    .bg-transparent { background-color: transparent; }
-    .bg-gray-900\/80 { background-color: rgba(17,24,39,.8); }
-    .bg-gray-950\/50 { background-color: rgba(3,7,18,.5); }
-    .bg-gray-800\/50 { background-color: rgba(31,41,55,.5); }
-    .bg-green-900\/50 { background-color: rgba(6,78,59,.5); }
-    .bg-teal-900\/50  { background-color: rgba(19,78,74,.5); }
-
-    /* ── Colors — text ─────────────────────────────────────────────────────── */
-    .text-gray-100 { color: #f3f4f6; }
-    .text-gray-200 { color: #e5e7eb; }
-    .text-gray-300 { color: #d1d5db; }
-    .text-gray-400 { color: #9ca3af; }
-    .text-gray-500 { color: #6b7280; }
-    .text-gray-600 { color: #4b5563; }
-    .text-white    { color: #fff; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-blue-400 { color: #60a5fa; }
-    .text-green-300 { color: #86efac; }
-    .text-green-400 { color: #4ade80; }
-    .text-teal-300  { color: #5eead4; }
-    .text-teal-400  { color: #2dd4bf; }
-    .text-amber-300  { color: #fcd34d; }
-    .text-amber-400  { color: #fbbf24; }
-    .text-red-400    { color: #f87171; }
-    .text-yellow-300 { color: #fde047; }
-
-    /* ── Colors — border ───────────────────────────────────────────────────── */
-    .border-gray-800 { border-color: #1f2937; }
-    .border-gray-700 { border-color: #374151; }
-    .border-blue-800\/50 { border-color: rgba(30,64,175,.5); }
-    .border-green-800\/50 { border-color: rgba(22,101,52,.5); }
-    .border-amber-900\/40 { border-color: rgba(120,53,15,.4); }
-    .border-0 { border-width: 0; }
-
-    /* ── Hover states ──────────────────────────────────────────────────────── */
-    .hover\:text-white:hover    { color: #fff; }
-    .hover\:text-gray-400:hover { color: #9ca3af; }
-    .hover\:text-teal-200:hover { color: #99f6e4; }
-    .hover\:bg-gray-800:hover   { background-color: #1f2937; }
-    .hover\:bg-gray-700:hover   { background-color: #374151; }
-    .hover\:bg-gray-600:hover   { background-color: #4b5563; }
-    .hover\:bg-teal-700:hover   { background-color: #0f766e; }
-    .hover\:bg-blue-500:hover   { background-color: #3b82f6; }
-    .active\:bg-blue-700:active { background-color: #1d4ed8; }
-    .hover\:text-red-400:hover  { color: #f87171; }
-    .hover\:bg-gray-800\/50:hover { background-color: rgba(31,41,55,.5); }
-
-    /* ── focus ─────────────────────────────────────────────────────────────── */
-    .focus\:outline-none:focus { outline: none; }
-    .focus\:text-blue-300:focus { color: #93c5fd; }
-
-    /* ── Group / details open ──────────────────────────────────────────────── */
-    details[open] .group-open\:rotate-180 { transform: rotate(180deg); }
-
-    /* ── Misc ───────────────────────────────────────────────────────────────── */
-    .accent-blue-500 { accent-color: #3b82f6; }
-    .cursor-pointer  { cursor: pointer; }
-    .shrink-0 { flex-shrink: 0; }
-    .font-mono { font-family: ui-monospace, monospace; }
-    .text-amber-400\/80  { color: rgba(251,191,36,.8); }
-    .text-amber-400\/60  { color: rgba(251,191,36,.6); }
-    .card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); }
-
-    /* Status badge animations */
     @keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)} 50%{box-shadow:0 0 0 6px rgba(34,197,94,0)} }
-    @keyframes pulse-gray  { 0%,100%{box-shadow:0 0 0 0 rgba(156,163,175,.3)} 50%{box-shadow:0 0 0 6px rgba(156,163,175,0)} }
     @keyframes spin        { to { transform: rotate(360deg); } }
 
-    .dot-up      { animation: pulse-green 2s ease infinite; background:#22c55e; }
-    .dot-down    { background:#4b5563; }
-    .dot-checking{ animation: spin 1s linear infinite; border:2px solid #6b7280; border-top-color:#93c5fd; border-radius:50%; background:transparent !important; }
+    .dot-up       { animation: pulse-green 2s ease infinite; background:#22c55e; }
+    .dot-down     { background:#4b5563; }
+    .dot-checking { animation: spin 1s linear infinite; border:2px solid #6b7280; border-top-color:#93c5fd; border-radius:50%; background:transparent !important; }
+    .card-hover   { transition: transform .15s ease, box-shadow .15s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0,0,0,.25); }
+
     .env-inp {
-      width:100%; background:#0f172a; border:1px solid #374151; border-radius:0.5rem;
-      padding:0.45rem 0.7rem; font-size:0.75rem; color:#e5e7eb; outline:none;
-      font-family:ui-monospace,monospace;
+      width: 100%; background: #0f172a; border: 1px solid #374151; border-radius: .5rem;
+      padding: .45rem .7rem; font-size: .75rem; color: #e5e7eb; outline: none;
+      font-family: ui-monospace, monospace; transition: border-color .15s, box-shadow .15s;
     }
-    .env-inp::placeholder { color:#374151; }
-    .env-inp:focus { border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.2); }
+    .env-inp::placeholder { color: #374151; }
+    .env-inp:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
+
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] > summary .chevron { transform: rotate(180deg); }
+    .chevron { transition: transform .15s; }
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen">
@@ -231,12 +37,12 @@
   <header class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-10">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm font-bold">D</div>
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm font-bold shrink-0">D</div>
         <span class="font-semibold text-lg">Dev Dashboard</span>
         <span class="text-gray-500 text-sm">/ local</span>
       </div>
       <button onclick="checkAll()" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-800">
-        <svg id="refresh-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg id="refresh-icon" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
         Verificar estado
@@ -244,167 +50,167 @@
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-6 py-10 space-y-12">
+  <main class="max-w-6xl mx-auto px-6 py-10 space-y-16">
 
-    <!-- ── Sistemas ───────────────────────────────────────────────── -->
+    <!-- ── Sistemas ───────────────────────────────────────────────────────── -->
     <section>
       <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Sistemas</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
         <!-- Ayudando -->
-        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4" id="card-ayudando">
-          <div class="flex items-start justify-between">
-            <div>
+        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-4" id="card-ayudando">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
               <h3 class="font-semibold text-base">Ayudando</h3>
               <div class="mt-2 flex flex-wrap gap-1.5">
                 <span id="version-fe-ayudando" class="bg-blue-950 text-blue-300 border border-blue-800/50 text-xs px-2 py-0.5 rounded-full">Angular 17 · Ionic 7 · Node 20</span>
                 <span id="version-be-ayudando" class="bg-green-950 text-green-300 border border-green-800/50 text-xs px-2 py-0.5 rounded-full">Laravel 8 · PHP 8.1</span>
               </div>
             </div>
-            <span id="badge-ayudando" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+            <span id="badge-ayudando" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium shrink-0">
               <span id="dot-ayudando" class="w-2 h-2 rounded-full dot-checking"></span>
               <span id="label-ayudando">verificando…</span>
             </span>
           </div>
-          <div class="space-y-2">
+          <div class="flex flex-col gap-2">
             <a id="link-ayudando-frontend" href="http://localhost:4200" target="_blank"
-               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors opacity-50 pointer-events-none">
               <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 Frontend
               </span>
               <span class="text-gray-400 text-xs">:4200</span>
             </a>
             <a id="link-ayudando-backend" href="http://localhost:8080" target="_blank"
-               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors opacity-50 pointer-events-none">
               <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <svg class="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
                 API / Backend
               </span>
               <span class="text-gray-400 text-xs">:8080</span>
             </a>
           </div>
-          <p class="text-gray-600 text-xs">Contenedores: <code class="text-gray-500">ayudando_backend · ayudando_frontend · ayudando_nginx</code></p>
+          <p class="text-gray-600 text-xs mt-auto">Contenedores: <code class="text-gray-500">ayudando_backend · ayudando_frontend · ayudando_nginx</code></p>
         </div>
 
         <!-- Emergencias -->
-        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4" id="card-emergencias">
-          <div class="flex items-start justify-between">
-            <div>
+        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-4" id="card-emergencias">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
               <h3 class="font-semibold text-base">Emergencias</h3>
               <div class="mt-2 flex flex-wrap gap-1.5">
                 <span id="version-fe-emergencias" class="bg-blue-950 text-blue-300 border border-blue-800/50 text-xs px-2 py-0.5 rounded-full">Angular 17 · Ionic 7 · Node 20</span>
                 <span id="version-be-emergencias" class="bg-green-950 text-green-300 border border-green-800/50 text-xs px-2 py-0.5 rounded-full">Laravel 8 · PHP 8.1</span>
               </div>
             </div>
-            <span id="badge-emergencias" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+            <span id="badge-emergencias" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium shrink-0">
               <span id="dot-emergencias" class="w-2 h-2 rounded-full dot-checking"></span>
               <span id="label-emergencias">verificando…</span>
             </span>
           </div>
-          <div class="space-y-2">
+          <div class="flex flex-col gap-2">
             <a id="link-emergencias-frontend" href="http://localhost:4201" target="_blank"
-               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors opacity-50 pointer-events-none">
               <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 Frontend
               </span>
               <span class="text-gray-400 text-xs">:4201</span>
             </a>
             <a id="link-emergencias-backend" href="http://localhost:8081" target="_blank"
-               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors opacity-50 pointer-events-none">
               <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <svg class="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
                 API / Backend
               </span>
               <span class="text-gray-400 text-xs">:8081</span>
             </a>
           </div>
-          <p class="text-gray-600 text-xs">Contenedores: <code class="text-gray-500">emergencias_backend · emergencias_frontend · emergencias_nginx</code></p>
+          <p class="text-gray-600 text-xs mt-auto">Contenedores: <code class="text-gray-500">emergencias_backend · emergencias_frontend · emergencias_nginx</code></p>
         </div>
 
         <!-- Fiscalización -->
-        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4" id="card-fiscalizacion">
-          <div class="flex items-start justify-between">
-            <div>
+        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-4" id="card-fiscalizacion">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
               <h3 class="font-semibold text-base">Fiscalización</h3>
               <div class="mt-2 flex flex-wrap gap-1.5">
                 <span id="version-fe-fiscalizacion" class="bg-blue-950 text-blue-300 border border-blue-800/50 text-xs px-2 py-0.5 rounded-full">Angular 20 · Ionic 8 · Node 22</span>
                 <span id="version-be-fiscalizacion" class="bg-green-950 text-green-300 border border-green-800/50 text-xs px-2 py-0.5 rounded-full">Laravel 8 · PHP 8.1</span>
               </div>
             </div>
-            <span id="badge-fiscalizacion" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+            <span id="badge-fiscalizacion" class="flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium shrink-0">
               <span id="dot-fiscalizacion" class="w-2 h-2 rounded-full dot-checking"></span>
               <span id="label-fiscalizacion">verificando…</span>
             </span>
           </div>
-          <div class="space-y-2">
+          <div class="flex flex-col gap-2">
             <a id="link-fiscalizacion-frontend" href="http://localhost:4202" target="_blank"
-               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors opacity-50 pointer-events-none">
               <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 Frontend
               </span>
               <span class="text-gray-400 text-xs">:4202</span>
             </a>
             <a id="link-fiscalizacion-backend" href="http://localhost:8082" target="_blank"
-               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors group opacity-50 pointer-events-none">
+               class="service-link flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 rounded-xl text-sm transition-colors opacity-50 pointer-events-none">
               <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <svg class="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
                 API / Backend
               </span>
               <span class="text-gray-400 text-xs">:8082</span>
             </a>
           </div>
-          <p class="text-gray-600 text-xs">Contenedores: <code class="text-gray-500">fiscalizacion_backend · fiscalizacion_frontend · fiscalizacion_nginx</code></p>
+          <p class="text-gray-600 text-xs mt-auto">Contenedores: <code class="text-gray-500">fiscalizacion_backend · fiscalizacion_frontend · fiscalizacion_nginx</code></p>
         </div>
 
       </div>
     </section>
 
-    <!-- ── Infraestructura compartida ─────────────────────────────── -->
+    <!-- ── Infraestructura compartida ─────────────────────────────────────── -->
     <section>
       <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Infraestructura compartida</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
-          <div class="flex items-start justify-between">
+        <div class="card-hover bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-4">
+          <div class="flex items-start justify-between gap-3">
             <div>
               <h3 class="font-semibold text-base">pgAdmin 4</h3>
               <p class="text-gray-500 text-sm mt-0.5">Administración de base de datos</p>
             </div>
-            <span class="bg-teal-900/50 text-teal-300 text-xs px-2.5 py-1 rounded-full font-medium">Siempre activo</span>
+            <span class="bg-teal-900/50 text-teal-300 text-xs px-2.5 py-1 rounded-full font-medium shrink-0">Siempre activo</span>
           </div>
           <a href="http://localhost:5050" target="_blank"
-             class="flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 hover:bg-teal-700 rounded-xl text-sm transition-colors group">
+             class="flex items-center justify-between w-full px-4 py-2.5 bg-gray-800 hover:bg-teal-700 rounded-xl text-sm transition-colors">
             <span class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-teal-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+              <svg class="w-4 h-4 text-teal-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
               Abrir pgAdmin
             </span>
-            <span class="text-gray-400 group-hover:text-teal-200 text-xs">:5050</span>
+            <span class="text-gray-400 text-xs">:5050</span>
           </a>
-          <p class="text-gray-600 text-xs">Host de conexión: <code class="text-gray-400">postgres</code> · Puerto: <code class="text-gray-400">5432</code> · Maintenance DB: <code class="text-gray-400">postgres</code></p>
+          <p class="text-gray-600 text-xs">Host: <code class="text-gray-400">postgres</code> · Puerto: <code class="text-gray-400">5432</code> · DB: <code class="text-gray-400">postgres</code></p>
         </div>
 
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-3">
-          <div class="flex items-start justify-between">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-3">
+          <div class="flex items-start justify-between gap-3">
             <div>
               <h3 class="font-semibold text-base">PostgreSQL 14</h3>
               <p class="text-gray-500 text-sm mt-0.5">Base de datos compartida · sin UI</p>
             </div>
-            <span class="bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">Siempre activo</span>
+            <span class="bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium shrink-0">Siempre activo</span>
           </div>
-          <div class="text-sm space-y-1.5 text-gray-400">
-            <div class="flex gap-2"><span class="text-gray-600 w-20">Host</span><code>localhost:5432</code></div>
-            <div class="flex gap-2"><span class="text-gray-600 w-20">Contenedor</span><code>shared_postgres</code></div>
-            <div class="flex gap-2"><span class="text-gray-600 w-20">DBs</span><code>ayudando · emergencias · fiscalizacion</code></div>
+          <div class="text-sm flex flex-col gap-1.5 text-gray-400">
+            <div class="flex gap-2"><span class="text-gray-600 w-24 shrink-0">Host</span><code>localhost:5432</code></div>
+            <div class="flex gap-2"><span class="text-gray-600 w-24 shrink-0">Contenedor</span><code>shared_postgres</code></div>
+            <div class="flex gap-2"><span class="text-gray-600 w-24 shrink-0">DBs</span><code>ayudando · emergencias · fiscalizacion</code></div>
           </div>
         </div>
 
       </div>
     </section>
 
-    <!-- ── Generador de .env ─────────────────────────────────────────────────── -->
+    <!-- ── Generador de .env ───────────────────────────────────────────────── -->
     <section>
       <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Generador de .env</h2>
 
@@ -417,38 +223,38 @@
           </div>
           <code class="text-xs text-gray-600">.env</code>
         </div>
-        <div class="p-6 space-y-4">
+        <div class="p-6 flex flex-col gap-4">
           <details class="bg-gray-950/50 border border-gray-700/50 rounded-xl">
-            <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">
+            <summary class="px-5 py-3 text-sm text-gray-400 flex items-center justify-between">
               <span>Cargar desde archivo existente</span>
-              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
-            <div class="px-5 pb-5 pt-3 space-y-3">
-              <textarea id="shared-load-textarea" rows="4" placeholder="Pegá el contenido de .env aquí..." class="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 font-mono resize-y focus:outline-none focus:border-blue-600 transition-colors"></textarea>
-              <button onclick="loadSharedEnv()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Cargar valores</button>
+            <div class="px-5 pb-5 pt-3 flex flex-col gap-3">
+              <textarea id="shared-load-textarea" rows="4" placeholder="Pegá el contenido de .env aquí..." class="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 font-mono resize-y focus:outline-none focus:border-blue-600 transition-colors env-inp"></textarea>
+              <button onclick="loadSharedEnv()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors self-start">Cargar valores</button>
             </div>
           </details>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="space-y-1"><label class="text-xs text-gray-500">POSTGRES_PASSWORD <span class="text-red-400">*</span></label><input id="ef-POSTGRES_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
-            <div class="space-y-1"><label class="text-xs text-gray-500">PGADMIN_PASSWORD <span class="text-red-400">*</span></label><input id="ef-PGADMIN_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">POSTGRES_PASSWORD <span class="text-red-400">*</span></label><input id="ef-POSTGRES_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
+            <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">PGADMIN_PASSWORD <span class="text-red-400">*</span></label><input id="ef-PGADMIN_PASSWORD" type="password" placeholder="contraseña segura" class="env-inp" autocomplete="off"/></div>
           </div>
           <details class="bg-gray-950/50 border border-gray-800 rounded-xl">
-            <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">
+            <summary class="px-5 py-3 text-sm text-gray-400 flex items-center justify-between">
               <span>Opciones avanzadas <span class="text-xs text-gray-600">(env, mail global)</span></span>
-              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div class="px-5 pb-5 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div class="space-y-1"><label class="text-xs text-gray-500">APP_ENV</label><input id="ef-APP_ENV" type="text" placeholder="local" class="env-inp"/></div>
-              <div class="space-y-1"><label class="text-xs text-gray-500">APP_DEBUG</label><input id="ef-APP_DEBUG" type="text" placeholder="true" class="env-inp"/></div>
-              <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_PORT</label><input id="ef-MAIL_PORT" type="text" placeholder="465" class="env-inp"/></div>
-              <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_ENCRYPTION</label><input id="ef-MAIL_ENCRYPTION" type="text" placeholder="tls" class="env-inp"/></div>
+              <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">APP_ENV</label><input id="ef-APP_ENV" type="text" placeholder="local" class="env-inp"/></div>
+              <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">APP_DEBUG</label><input id="ef-APP_DEBUG" type="text" placeholder="true" class="env-inp"/></div>
+              <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">MAIL_PORT</label><input id="ef-MAIL_PORT" type="text" placeholder="465" class="env-inp"/></div>
+              <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">MAIL_ENCRYPTION</label><input id="ef-MAIL_ENCRYPTION" type="text" placeholder="tls" class="env-inp"/></div>
             </div>
           </details>
-          <button onclick="generateSharedEnv()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto">
+          <button onclick="generateSharedEnv()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors self-start">
             Generar .env
           </button>
         </div>
-        <div id="shared-output" class="hidden px-6 pb-6 border-t border-gray-800 pt-5 space-y-3">
+        <div id="shared-output" class="hidden px-6 pb-6 border-t border-gray-800 pt-5 flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <p class="text-sm font-medium text-gray-300">Contenido de <code class="text-yellow-300">.env</code></p>
             <div class="flex gap-2">
@@ -457,75 +263,72 @@
             </div>
           </div>
           <pre id="shared-content" class="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs overflow-x-auto text-green-300 leading-relaxed max-h-64 overflow-y-auto"></pre>
-          <p class="text-xs text-amber-400/80">Copiá este contenido en <code>.env</code> en la raíz del repo. Nunca lo subas a git.</p>
+          <p class="text-xs text-amber-400/80">Copiá este contenido en <code class="text-yellow-300">.env</code> en la raíz del repo. Nunca lo subas a git.</p>
         </div>
       </div>
 
       <!-- Per-project cards (dynamically added) -->
-      <p class="text-xs text-amber-400/60 mb-3">
-        Los valores se cargan desde el filesystem del repo a través del entrypoint. Editá los campos y descargá el archivo generado.
-      </p>
-      <div id="project-env-cards" class="space-y-4"></div>
+      <p class="text-xs text-amber-400/60 mb-3">Los valores se cargan desde el filesystem del repo. Editá los campos y descargá el archivo generado.</p>
+      <div id="project-env-cards" class="flex flex-col gap-4"></div>
       <button onclick="addProjectCard()" class="flex items-center gap-2 mx-auto mt-4 px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-colors">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         Agregar proyecto
       </button>
-
     </section>
 
-    <!-- ── Guía de configuración ──────────────────────────────────── -->
+    <!-- ── Guía de configuración ──────────────────────────────────────────── -->
     <section>
       <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-6">Cómo configurar el entorno</h2>
-      <div class="space-y-4">
+      <div class="flex flex-col gap-4">
 
-        <details class="bg-gray-900 border border-gray-800 rounded-2xl group" open>
-          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden" open>
+          <summary class="px-6 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
             <span class="flex items-center gap-3">
-              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">1</span>
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0">1</span>
               <span class="font-medium">Clonar el repo y crear los archivos <code class="text-blue-300">.env</code></span>
             </span>
-            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
+          <div class="px-6 pb-5 pt-4 flex flex-col gap-3 text-sm text-gray-300">
             <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">git clone &lt;repo-url&gt;
 cd container-laravel-ionic-postgres
 cp .env.example .env
-cp envs/ayudando.env.example envs/ayudando.env
-cp envs/emergencias.env.example envs/emergencias.env
+cp envs/ayudando.env.example     envs/ayudando.env
+cp envs/emergencias.env.example  envs/emergencias.env
 cp envs/fiscalizacion.env.example envs/fiscalizacion.env</pre>
-            <p class="text-gray-400">Editá cada archivo y completá los valores marcados con <code>change_me</code>:</p>
-            <ul class="list-disc list-inside space-y-1 text-gray-400 text-xs">
+            <p class="text-gray-400">Completá los valores obligatorios en cada archivo:</p>
+            <ul class="list-disc list-inside flex flex-col gap-1 text-gray-400 text-xs">
               <li><code>.env</code> — <code>POSTGRES_PASSWORD</code>, <code>PGADMIN_PASSWORD</code></li>
               <li><code>envs/&lt;proyecto&gt;.env</code> — <code>APP_KEY</code>, <code>JWT_SECRET</code>, credenciales SMTP</li>
-              <li><code>APP_KEY</code> — generá con el paso 4</li>
+              <li><code>APP_KEY</code> — generá con el paso 4 (antes de levantar el backend)</li>
             </ul>
           </div>
         </details>
 
-        <details class="bg-gray-900 border border-gray-800 rounded-2xl group">
-          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+          <summary class="px-6 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
             <span class="flex items-center gap-3">
-              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">2</span>
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0">2</span>
               <span class="font-medium">Levantar infraestructura compartida</span>
             </span>
-            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
-            <p class="text-gray-400">Hacelo <strong>una sola vez</strong>. Incluye postgres, pgAdmin y este dashboard.</p>
-            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">docker compose -f docker-compose.shared.yml up -d</pre>
-            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">docker compose -f docker-compose.shared.yml ps</pre>
+          <div class="px-6 pb-5 pt-4 flex flex-col gap-3 text-sm text-gray-300">
+            <p class="text-gray-400">Una sola vez. Incluye postgres, pgAdmin y este dashboard.</p>
+            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">docker compose -f docker-compose.shared.yml up -d
+docker compose -f docker-compose.shared.yml ps   # shared_postgres debe mostrar (healthy)</pre>
           </div>
         </details>
 
-        <details class="bg-gray-900 border border-gray-800 rounded-2xl group">
-          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+          <summary class="px-6 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
             <span class="flex items-center gap-3">
-              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">3</span>
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0">3</span>
               <span class="font-medium">Levantar un proyecto específico</span>
             </span>
-            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
+          <div class="px-6 pb-5 pt-4 flex flex-col gap-3 text-sm text-gray-300">
             <p class="text-gray-400">Solo uno a la vez. Levantá el shared primero.</p>
             <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
 # ó
@@ -535,66 +338,76 @@ docker compose -f docker-compose.fiscalizacion.yml --project-name fiscalizacion 
           </div>
         </details>
 
-        <details class="bg-gray-900 border border-gray-800 rounded-2xl group">
-          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+          <summary class="px-6 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
             <span class="flex items-center gap-3">
-              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">4</span>
-              <span class="font-medium">Generar APP_KEY y migrar la base de datos</span>
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0">4</span>
+              <span class="font-medium">Generar APP_KEY e importar la base de datos</span>
             </span>
-            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
-            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">docker exec ayudando_backend php artisan key:generate
-docker exec ayudando_backend php artisan migrate
-# ó importar dump existente:
+          <div class="px-6 pb-5 pt-4 flex flex-col gap-3 text-sm text-gray-300">
+            <p class="text-gray-400">Generá la clave <strong>sin</strong> el contenedor corriendo, pegala en <code class="text-yellow-300">envs/ayudando.env</code> y luego levantá:</p>
+            <pre class="bg-gray-950 rounded-xl p-4 text-xs overflow-x-auto text-green-300">docker run --rm php:8.1-fpm-alpine php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+# → APP_KEY=base64:...  (pegar en envs/ayudando.env antes del up)
+
+docker compose -f docker-compose.ayudando.yml --project-name ayudando up -d
+
+# Importar dump existente:
 docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --no-acl &lt; src/ayudando/ayudando.tar</pre>
           </div>
         </details>
 
-        <details class="bg-gray-900 border border-gray-800 rounded-2xl group">
-          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+        <details class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+          <summary class="px-6 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
             <span class="flex items-center gap-3">
-              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center">5</span>
+              <span class="w-6 h-6 bg-blue-700 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0">5</span>
               <span class="font-medium">Conectar pgAdmin al servidor de base de datos</span>
             </span>
-            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="px-6 pb-5 space-y-3 text-sm text-gray-300">
-            <div class="bg-gray-950 rounded-xl p-4 text-xs space-y-1">
-              <div class="flex gap-4"><span class="text-gray-500 w-28">Host</span><code class="text-yellow-300">postgres</code><span class="text-gray-600 ml-2">(nombre del servicio, NO localhost)</span></div>
-              <div class="flex gap-4"><span class="text-gray-500 w-28">Port</span><code class="text-yellow-300">5432</code></div>
-              <div class="flex gap-4"><span class="text-gray-500 w-28">Username</span><code class="text-yellow-300">postgres</code></div>
-              <div class="flex gap-4"><span class="text-gray-500 w-28">Maintenance DB</span><code class="text-yellow-300">postgres</code></div>
-              <div class="flex gap-4"><span class="text-gray-500 w-28">Password</span><code class="text-yellow-300">valor de POSTGRES_PASSWORD</code></div>
+          <div class="px-6 pb-5 pt-4">
+            <div class="bg-gray-950 rounded-xl p-4 text-xs flex flex-col gap-2">
+              <div class="flex gap-4"><span class="text-gray-500 w-28 shrink-0">Host</span><code class="text-yellow-300">postgres</code><span class="text-gray-600 ml-2">(nombre del servicio, NO localhost)</span></div>
+              <div class="flex gap-4"><span class="text-gray-500 w-28 shrink-0">Port</span><code class="text-yellow-300">5432</code></div>
+              <div class="flex gap-4"><span class="text-gray-500 w-28 shrink-0">Username</span><code class="text-yellow-300">postgres</code></div>
+              <div class="flex gap-4"><span class="text-gray-500 w-28 shrink-0">Maintenance DB</span><code class="text-yellow-300">postgres</code></div>
+              <div class="flex gap-4"><span class="text-gray-500 w-28 shrink-0">Password</span><code class="text-yellow-300">valor de POSTGRES_PASSWORD</code></div>
             </div>
           </div>
         </details>
 
-        <details class="bg-gray-900 border border-amber-900/40 rounded-2xl group">
-          <summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none">
+        <details class="bg-gray-900 border border-amber-900/40 rounded-2xl overflow-hidden">
+          <summary class="px-6 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
             <span class="flex items-center gap-3">
-              <span class="w-6 h-6 bg-amber-700 text-white text-xs font-bold rounded-full flex items-center justify-center">!</span>
+              <span class="w-6 h-6 bg-amber-700 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0">!</span>
               <span class="font-medium text-amber-300">Problemas frecuentes</span>
             </span>
-            <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </summary>
-          <div class="px-6 pb-5 space-y-4 text-sm">
-            <div>
+          <div class="px-6 pb-5 pt-4 flex flex-col gap-5 text-sm">
+            <div class="flex flex-col gap-2">
+              <p class="text-amber-300 font-medium">APP_KEY vacío o inválido</p>
+              <p class="text-gray-400 text-xs">Generá la clave sin contenedor corriendo, pegala en <code>envs/&lt;proyecto&gt;.env</code> y recreá:</p>
+              <pre class="bg-gray-950 rounded-xl p-3 text-xs text-green-300">docker run --rm php:8.1-fpm-alpine php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+docker compose -f docker-compose.&lt;proyecto&gt;.yml --project-name &lt;proyecto&gt; up -d --force-recreate backend</pre>
+              <p class="text-gray-600 text-xs">restart NO es suficiente — el env_file solo se recarga al recrear el contenedor.</p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <p class="text-amber-300 font-medium">exec format error en Mac/Linux</p>
+              <p class="text-gray-400 text-xs">El entrypoint tiene CRLF (Windows). Corregir:</p>
+              <pre class="bg-gray-950 rounded-xl p-3 text-xs text-green-300">docker run --rm -v "$(pwd)/docker/php/entrypoint.sh:/f" alpine sed -i 's/\r//' /f</pre>
+            </div>
+            <div class="flex flex-col gap-2">
               <p class="text-amber-300 font-medium">Backend no conecta a la DB</p>
-              <p class="text-gray-400 text-xs mb-1">Verificá que <code>shared_postgres</code> esté healthy. Causa más común: <code>POSTGRES_PASSWORD</code> vacío.</p>
+              <p class="text-gray-400 text-xs">shared_postgres debe estar healthy. Causa más común: POSTGRES_PASSWORD vacío.</p>
               <pre class="bg-gray-950 rounded-xl p-3 text-xs text-green-300">docker compose -f docker-compose.shared.yml ps</pre>
             </div>
-            <div>
-              <p class="text-amber-300 font-medium">Frontend no detecta cambios</p>
-              <pre class="bg-gray-950 rounded-xl p-3 text-xs text-green-300">docker compose -f docker-compose.ayudando.yml --project-name ayudando restart frontend</pre>
-            </div>
-            <div>
+            <div class="flex flex-col gap-2">
               <p class="text-amber-300 font-medium">Conflicto de puertos</p>
-              <p class="text-gray-400 text-xs mb-1">Sobreescribí en el <code>.env</code>:</p>
-              <pre class="bg-gray-950 rounded-xl p-3 text-xs text-green-300">AYUDANDO_NGINX_PORT=8083
-AYUDANDO_FRONTEND_PORT=4203</pre>
+              <p class="text-gray-400 text-xs">Sobreescribí en <code>.env</code>: <code>AYUDANDO_NGINX_PORT=8083</code>, <code>AYUDANDO_FRONTEND_PORT=4203</code></p>
             </div>
-            <div>
+            <div class="flex flex-col gap-2">
               <p class="text-amber-300 font-medium">Reset total de la DB</p>
               <pre class="bg-gray-950 rounded-xl p-3 text-xs text-red-400"># ⚠️ Destruye todos los volúmenes
 docker compose -f docker-compose.shared.yml down -v
@@ -614,75 +427,60 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
   </footer>
 
   <script>
-    // ── Config ────────────────────────────────────────────────────────────────
+    // ── Config ─────────────────────────────────────────────────────────────────
     const SYSTEMS = [
-      { id: 'ayudando',      label: 'Ayudando',      color: 'blue'   },
-      { id: 'emergencias',   label: 'Emergencias',   color: 'orange' },
-      { id: 'fiscalizacion', label: 'Fiscalización', color: 'purple' },
+      { id: 'ayudando',      label: 'Ayudando',      hoverBg: 'hover:bg-blue-700',   hoverTxt: 'hover:text-blue-200'   },
+      { id: 'emergencias',   label: 'Emergencias',   hoverBg: 'hover:bg-orange-700', hoverTxt: 'hover:text-orange-200' },
+      { id: 'fiscalizacion', label: 'Fiscalización', hoverBg: 'hover:bg-purple-700', hoverTxt: 'hover:text-purple-200' },
     ];
-
-    const COLOR_MAP = {
-      blue:   { hover: 'hover:bg-blue-700',   text: 'hover:text-blue-200'   },
-      orange: { hover: 'hover:bg-orange-700', text: 'hover:text-orange-200' },
-      purple: { hover: 'hover:bg-purple-700', text: 'hover:text-purple-200' },
-    };
 
     // ── Health check ──────────────────────────────────────────────────────────
     async function probe(path) {
       try {
-        // nginx proxy handles the actual TCP connection — any response = up
         const res = await fetch(path, { signal: AbortSignal.timeout(4000) });
-        return res.status < 500; // 200, 301, 404 all mean the server is running
-      } catch {
-        return false;
-      }
+        return res.status < 500;
+      } catch { return false; }
     }
 
     async function checkSystem(sys) {
-      const dot   = document.getElementById('dot-' + sys.id);
-      const label = document.getElementById('label-' + sys.id);
-      const badge = document.getElementById('badge-' + sys.id);
-      const linkFe = document.getElementById('link-' + sys.id + '-frontend');
-      const linkBe = document.getElementById('link-' + sys.id + '-backend');
-      const col    = COLOR_MAP[sys.color];
+      const dot    = document.getElementById('dot-'   + sys.id);
+      const label  = document.getElementById('label-' + sys.id);
+      const badge  = document.getElementById('badge-' + sys.id);
+      const linkFe = document.getElementById('link-'  + sys.id + '-frontend');
+      const linkBe = document.getElementById('link-'  + sys.id + '-backend');
 
-      // Checking state
       dot.className   = 'w-2 h-2 rounded-full dot-checking';
       label.textContent = 'verificando…';
-      badge.className = 'flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium';
+      badge.className = 'flex items-center gap-1.5 bg-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium shrink-0';
 
       const [feUp, beUp] = await Promise.all([
         probe('/health/' + sys.id + '/frontend'),
         probe('/health/' + sys.id + '/backend'),
       ]);
 
-      const up = feUp || beUp;
-
-      // Badge
-      if (up) {
+      if (feUp || beUp) {
         dot.className   = 'w-2 h-2 rounded-full dot-up';
         label.textContent = 'activo';
-        badge.className = 'flex items-center gap-1.5 bg-green-900/50 text-green-300 text-xs px-2.5 py-1 rounded-full font-medium';
+        badge.className = 'flex items-center gap-1.5 bg-green-900/50 text-green-300 text-xs px-2.5 py-1 rounded-full font-medium shrink-0';
       } else {
         dot.className   = 'w-2 h-2 rounded-full dot-down';
         label.textContent = 'inactivo';
-        badge.className = 'flex items-center gap-1.5 bg-gray-800 text-gray-500 text-xs px-2.5 py-1 rounded-full font-medium';
+        badge.className = 'flex items-center gap-1.5 bg-gray-800 text-gray-500 text-xs px-2.5 py-1 rounded-full font-medium shrink-0';
       }
 
-      // Links — enable only if the respective service is up
-      setLink(linkFe, feUp, col);
-      setLink(linkBe, beUp, col);
+      setLink(linkFe, feUp, sys);
+      setLink(linkBe, beUp, sys);
     }
 
-    function setLink(el, active, col) {
+    function setLink(el, active, sys) {
       if (active) {
         el.classList.remove('opacity-50', 'pointer-events-none');
-        el.classList.add(col.hover);
-        el.querySelectorAll('.text-gray-400').forEach(s => s.classList.add(col.text));
+        el.classList.add(sys.hoverBg);
+        el.querySelectorAll('.text-gray-400').forEach(s => s.classList.add(sys.hoverTxt));
       } else {
         el.classList.add('opacity-50', 'pointer-events-none');
-        el.classList.remove(col.hover);
-        el.querySelectorAll('.text-gray-400').forEach(s => s.classList.remove(col.text));
+        el.classList.remove(sys.hoverBg);
+        el.querySelectorAll('.text-gray-400').forEach(s => s.classList.remove(sys.hoverTxt));
       }
     }
 
@@ -693,11 +491,10 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       icon.style.animation = '';
     }
 
-    // Auto-check on load + every 30 seconds
     checkAll();
     setInterval(checkAll, 30000);
 
-    // ── Version badges (populated from entrypoint-written JSON) ──────────────
+    // ── Version badges ────────────────────────────────────────────────────────
     async function loadVersions(sysId) {
       try {
         const [fe, be] = await Promise.all([
@@ -714,12 +511,11 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
         }
       } catch {}
     }
-
     SYSTEMS.forEach(s => loadVersions(s.id));
 
-    // ── .env generator ───────────────────────────────────────────────────────
-    const SHARED_KEYS = ['POSTGRES_PASSWORD', 'POSTGRES_USER', 'PGADMIN_PASSWORD', 'APP_ENV', 'APP_DEBUG', 'MAIL_PORT', 'MAIL_ENCRYPTION'];
-    const PROJECT_KEYS = ['APP_KEY', 'JWT_SECRET', 'MAIL_HOST', 'MAIL_USERNAME', 'MAIL_PASSWORD'];
+    // ── .env generator ────────────────────────────────────────────────────────
+    const SHARED_KEYS  = ['POSTGRES_PASSWORD','POSTGRES_USER','PGADMIN_PASSWORD','APP_ENV','APP_DEBUG','MAIL_PORT','MAIL_ENCRYPTION'];
+    const PROJECT_KEYS = ['APP_KEY','JWT_SECRET','DB_DATABASE','MAIL_HOST','MAIL_USERNAME','MAIL_PASSWORD'];
 
     function ev(id) {
       const el = document.getElementById(id);
@@ -727,17 +523,15 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       return el.type === 'checkbox' ? (el.checked ? 'yes' : 'no') : el.value.trim();
     }
 
-    // ponytail: only used where projectName reaches innerHTML/attributes —
-    // stops DOM-XSS from malicious env filenames or user-typed names.
     function escapeHtml(str) {
       return String(str == null ? '' : str)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
     function parseEnvText(text) {
       const map = {};
-      text.split('\n').forEach(function(line) {
+      text.split('\n').forEach(line => {
         const t = line.trim();
         if (!t || t.startsWith('#')) return;
         const eq = t.indexOf('=');
@@ -749,7 +543,7 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
 
     function loadSharedEnv() {
       const map = parseEnvText(document.getElementById('shared-load-textarea').value);
-      SHARED_KEYS.forEach(function(k) {
+      SHARED_KEYS.forEach(k => {
         const el = document.getElementById('ef-' + k);
         if (el && map[k] !== undefined) el.value = map[k];
       });
@@ -757,25 +551,23 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
 
     function loadProjectFromTextarea(cardId) {
       const text = document.getElementById(cardId + '-load-textarea').value;
-      const map = parseEnvText(text);
-      // Try to extract project name from first comment line
+      const map  = parseEnvText(text);
       const firstLine = text.split('\n')[0].trim();
       const nameMatch = firstLine.match(/^#\s*(\S+)\s*—\s*envs\//);
       if (nameMatch) {
-        const nameInput = document.getElementById(cardId + '-name');
-        if (nameInput) nameInput.value = nameMatch[1];
+        const ni = document.getElementById(cardId + '-name');
+        if (ni) ni.value = nameMatch[1];
       }
-      PROJECT_KEYS.forEach(function(k) {
+      PROJECT_KEYS.forEach(k => {
         const el = document.getElementById('ef-' + cardId + '-' + k);
         if (el && map[k] !== undefined) el.value = map[k];
       });
       const formly = document.getElementById('ef-' + cardId + '-INSTALL_FORMLY');
       if (formly && map['INSTALL_FORMLY'] !== undefined) formly.checked = map['INSTALL_FORMLY'] === 'yes';
-      // Reload unknown keys as custom vars
       const container = document.getElementById('custom-vars-' + cardId);
       container.innerHTML = '';
       const known = new Set(PROJECT_KEYS.concat(['INSTALL_FORMLY']));
-      Object.keys(map).forEach(function(k) { if (!known.has(k)) addCustomVar(cardId, k, map[k]); });
+      Object.keys(map).forEach(k => { if (!known.has(k)) addCustomVar(cardId, k, map[k]); });
     }
 
     function generateSharedEnv() {
@@ -786,9 +578,9 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
         'PGADMIN_PASSWORD=' + ev('ef-PGADMIN_PASSWORD'),
         '',
         '# Opciones generales',
-        'APP_ENV=' + (ev('ef-APP_ENV') || 'local'),
-        'APP_DEBUG=' + (ev('ef-APP_DEBUG') || 'true'),
-        'MAIL_PORT=' + (ev('ef-MAIL_PORT') || '465'),
+        'APP_ENV='         + (ev('ef-APP_ENV')         || 'local'),
+        'APP_DEBUG='       + (ev('ef-APP_DEBUG')       || 'true'),
+        'MAIL_PORT='       + (ev('ef-MAIL_PORT')       || '465'),
         'MAIL_ENCRYPTION=' + (ev('ef-MAIL_ENCRYPTION') || 'tls'),
       ];
       showOutput('shared', lines.join('\n'));
@@ -798,24 +590,23 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       const projectName = document.getElementById(cardId + '-name').value.trim() || 'proyecto';
       const lines = [
         '# ' + projectName + ' — envs/' + projectName + '.env',
-        'APP_KEY=' + ev('ef-' + cardId + '-APP_KEY'),
-        'JWT_SECRET=' + ev('ef-' + cardId + '-JWT_SECRET'),
-        'MAIL_HOST=' + ev('ef-' + cardId + '-MAIL_HOST'),
-        'MAIL_USERNAME=' + ev('ef-' + cardId + '-MAIL_USERNAME'),
-        'MAIL_PASSWORD=' + ev('ef-' + cardId + '-MAIL_PASSWORD'),
-        'INSTALL_FORMLY=' + ev('ef-' + cardId + '-INSTALL_FORMLY'),
+        'APP_KEY='      + ev('ef-' + cardId + '-APP_KEY'),
+        'JWT_SECRET='   + ev('ef-' + cardId + '-JWT_SECRET'),
+        'DB_DATABASE='  + (ev('ef-' + cardId + '-DB_DATABASE') || projectName),
+        'MAIL_HOST='    + ev('ef-' + cardId + '-MAIL_HOST'),
+        'MAIL_USERNAME='+ ev('ef-' + cardId + '-MAIL_USERNAME'),
+        'MAIL_PASSWORD='+ ev('ef-' + cardId + '-MAIL_PASSWORD'),
+        'INSTALL_FORMLY='+ ev('ef-' + cardId + '-INSTALL_FORMLY'),
       ];
-      document.querySelectorAll('#custom-vars-' + cardId + ' .custom-var-row').forEach(function(row) {
-        const k = row.querySelector('.custom-key') ? row.querySelector('.custom-key').value.trim() : '';
-        const v = row.querySelector('.custom-val') ? row.querySelector('.custom-val').value.trim() : '';
+      document.querySelectorAll('#custom-vars-' + cardId + ' .custom-var-row').forEach(row => {
+        const k = row.querySelector('.custom-key')?.value.trim() || '';
+        const v = row.querySelector('.custom-val')?.value.trim() || '';
         if (k) lines.push(k + '=' + v);
       });
-      // Update dynamic labels
-      const outLabel = document.getElementById(cardId + '-out-label');
-      if (outLabel) outLabel.textContent = projectName;
+      const outLabel  = document.getElementById(cardId + '-out-label');
       const fileLabel = document.getElementById(cardId + '-file-label');
+      if (outLabel)  outLabel.textContent  = projectName;
       if (fileLabel) fileLabel.textContent = projectName;
-      // Auto-expand the card so the output is visible
       document.getElementById(cardId).open = true;
       showOutput(cardId, lines.join('\n'));
     }
@@ -828,10 +619,10 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
     }
 
     function copyContent(contentId, btn) {
-      navigator.clipboard.writeText(document.getElementById(contentId).textContent).then(function() {
+      navigator.clipboard.writeText(document.getElementById(contentId).textContent).then(() => {
         const orig = btn.textContent;
-        btn.textContent = 'Copiado';
-        setTimeout(function() { btn.textContent = orig; }, 2000);
+        btn.textContent = 'Copiado ✓';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
       });
     }
 
@@ -846,102 +637,101 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       key = key || ''; val = val || '';
       const row = document.createElement('div');
       row.className = 'custom-var-row flex gap-2 items-center';
-      const keyInp = document.createElement('input');
-      keyInp.className = 'custom-key env-inp flex-1'; keyInp.type = 'text'; keyInp.placeholder = 'KEY'; keyInp.value = key; keyInp.autocomplete = 'off';
-      const eqSpan = document.createElement('span');
-      eqSpan.className = 'text-gray-600 text-sm font-mono'; eqSpan.textContent = '=';
-      const valInp = document.createElement('input');
-      valInp.className = 'custom-val env-inp flex-1'; valInp.type = 'text'; valInp.placeholder = 'value'; valInp.value = val; valInp.autocomplete = 'off';
+      const ki = document.createElement('input');
+      ki.className = 'custom-key env-inp flex-1'; ki.type = 'text'; ki.placeholder = 'KEY'; ki.value = key; ki.autocomplete = 'off';
+      const eq = document.createElement('span');
+      eq.className = 'text-gray-600 text-sm font-mono shrink-0'; eq.textContent = '=';
+      const vi = document.createElement('input');
+      vi.className = 'custom-val env-inp flex-1'; vi.type = 'text'; vi.placeholder = 'value'; vi.value = val; vi.autocomplete = 'off';
       const del = document.createElement('button');
       del.className = 'text-gray-600 hover:text-red-400 transition-colors text-xs px-1 shrink-0'; del.textContent = '✕';
       del.onclick = function() { this.parentElement.remove(); };
-      row.appendChild(keyInp); row.appendChild(eqSpan); row.appendChild(valInp); row.appendChild(del);
+      row.append(ki, eq, vi, del);
       document.getElementById('custom-vars-' + cardId).appendChild(row);
     }
 
     function addProjectCard(projectName, valuesMap) {
       projectName = projectName || '';
-      const cardId = 'card-' + Math.random().toString(36).slice(2, 9);
+      const cardId    = 'card-' + Math.random().toString(36).slice(2, 9);
       const container = document.getElementById('project-env-cards');
-      const card = document.createElement('details');
-      card.className = 'bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden group';
-      card.id = cardId;
-      card.innerHTML = [
-        '<summary class="px-6 py-4 cursor-pointer flex items-center justify-between list-none border-b border-gray-800 hover:bg-gray-800/50 transition-colors [&::-webkit-details-marker]:hidden">',
-        '  <div class="flex items-center gap-3">',
-        '    <span class="w-2 h-2 rounded-full bg-gray-500"></span>',
-        '    <input type="text" id="' + cardId + '-name" placeholder="nombre-proyecto" value="' + escapeHtml(projectName) + '" class="bg-transparent border-0 text-sm font-medium text-gray-200 focus:outline-none focus:text-blue-300 w-40" onclick="event.stopPropagation()" />',
-        '  </div>',
-        '  <div class="flex items-center gap-3">',
-        '    <code class="text-xs text-gray-600">envs/<span id="' + cardId + '-file-label">' + escapeHtml(projectName || '...') + '</span>.env</code>',
-        '    <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>',
-        '  </div>',
-        '</summary>',
-        '<div class="p-6 space-y-4">',
-        '  <details class="bg-gray-950/50 border border-gray-700/50 rounded-xl">',
-        '    <summary class="px-5 py-3 cursor-pointer text-sm text-gray-400 list-none flex items-center justify-between">',
-        '      <span>Cargar desde archivo existente</span>',
-        '      <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>',
-        '    </summary>',
-        '    <div class="px-5 pb-5 pt-3 space-y-3">',
-        '      <textarea id="' + cardId + '-load-textarea" rows="4" placeholder="Pegá el contenido del .env aquí..." class="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 font-mono resize-y focus:outline-none focus:border-blue-600 transition-colors"></textarea>',
-        '      <div class="flex gap-2">',
-        '        <button onclick="loadProjectFromTextarea(\'' + cardId + '\')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Cargar valores</button>',
-        '        <input type="file" accept=".env,text/plain" id="' + cardId + '-file" class="hidden" onchange="loadProjectFromFile(\'' + cardId + '\', this)" />',
-        '        <button onclick="document.getElementById(\'' + cardId + '-file\').click()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Seleccionar archivo\u2026</button>',
-        '      </div>',
-        '    </div>',
-        '  </details>',
-        '  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">',
-        '    <div class="space-y-1"><label class="text-xs text-gray-500">APP_KEY <span class="text-red-400">*</span></label><input id="ef-' + cardId + '-APP_KEY" type="text" placeholder="base64:..." class="env-inp" autocomplete="off"/></div>',
-        '    <div class="space-y-1"><label class="text-xs text-gray-500">JWT_SECRET <span class="text-red-400">*</span></label><input id="ef-' + cardId + '-JWT_SECRET" type="password" placeholder="string aleatorio largo" class="env-inp" autocomplete="off"/></div>',
-        '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_HOST</label><input id="ef-' + cardId + '-MAIL_HOST" type="text" placeholder="smtp.ejemplo.com" class="env-inp" autocomplete="off"/></div>',
-        '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_USERNAME</label><input id="ef-' + cardId + '-MAIL_USERNAME" type="text" placeholder="usuario@ejemplo.com" class="env-inp" autocomplete="off"/></div>',
-        '    <div class="space-y-1"><label class="text-xs text-gray-500">MAIL_PASSWORD</label><input id="ef-' + cardId + '-MAIL_PASSWORD" type="password" placeholder="contraseña SMTP" class="env-inp" autocomplete="off"/></div>',
-        '  </div>',
-        '  <label class="flex items-center gap-3 cursor-pointer select-none">',
-        '    <input type="checkbox" id="ef-' + cardId + '-INSTALL_FORMLY" class="w-4 h-4 accent-blue-500 cursor-pointer rounded"/>',
-        '    <span class="text-sm text-gray-300">Instalar @ngx-formly</span>',
-        '    <span class="text-xs text-gray-500">\u2014 npm install @ngx-formly/core al primer arranque</span>',
-        '  </label>',
-        '  <div>',
-        '    <p class="text-xs text-gray-600 mb-2">Variables adicionales</p>',
-        '    <div id="custom-vars-' + cardId + '" class="space-y-2"></div>',
-        '    <button onclick="addCustomVar(\'' + cardId + '\')" class="mt-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs rounded-lg transition-colors flex items-center gap-1.5">',
-        '      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>',
-        '      Agregar variable',
-        '    </button>',
-        '  </div>',
-        '  <button onclick="generateProjectEnv(\'' + cardId + '\')" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto">',
-        '    Generar envs/' + escapeHtml(projectName || '...') + '.env',
-        '  </button>',
-        '</div>',
-        '<div id="' + cardId + '-output" class="hidden px-6 pb-6 border-t border-gray-800 pt-5 space-y-3">',
-        '  <div class="flex items-center justify-between">',
-        '    <p class="text-sm font-medium text-gray-300">Contenido de <code class="text-yellow-300">envs/<span id="' + cardId + '-out-label">' + escapeHtml(projectName || '...') + '</span>.env</code></p>',
-        '    <div class="flex gap-2">',
-        '      <button onclick="copyContent(\'' + cardId + '-content\', this)" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Copiar</button>',
-        '      <button onclick="downloadContent(\'' + cardId + '-content\', (document.getElementById(\'' + cardId + '-name\').value || \'proyecto\') + \'.env\')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Descargar</button>',
-        '    </div>',
-        '  </div>',
-        '  <pre id="' + cardId + '-content" class="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs overflow-x-auto text-green-300 leading-relaxed max-h-64 overflow-y-auto"></pre>',
-        '  <p class="text-xs text-amber-400/80">Copi\u00e1 este contenido en <code>envs/' + escapeHtml(projectName || '...') + '.env</code>. Nunca lo subas a git.</p>',
-        '</div>',
-      ].join('\n');
+      const card      = document.createElement('details');
+      card.className  = 'bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden';
+      card.id         = cardId;
+      card.innerHTML  = `
+<summary class="px-6 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
+  <div class="flex items-center gap-3">
+    <span class="w-2 h-2 rounded-full bg-gray-600 shrink-0"></span>
+    <input type="text" id="${cardId}-name" placeholder="nombre-proyecto" value="${escapeHtml(projectName)}"
+           class="bg-transparent border-0 outline-none text-sm font-medium text-gray-200 focus:text-blue-300 w-40 transition-colors"
+           onclick="event.stopPropagation()" />
+  </div>
+  <div class="flex items-center gap-3">
+    <code class="text-xs text-gray-600">envs/<span id="${cardId}-file-label">${escapeHtml(projectName||'...')}</span>.env</code>
+    <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+  </div>
+</summary>
+<div class="p-6 flex flex-col gap-4">
+  <details class="bg-gray-950/50 border border-gray-700/50 rounded-xl">
+    <summary class="px-5 py-3 text-sm text-gray-400 flex items-center justify-between">
+      <span>Cargar desde archivo existente</span>
+      <svg class="w-4 h-4 text-gray-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </summary>
+    <div class="px-5 pb-5 pt-3 flex flex-col gap-3">
+      <textarea id="${cardId}-load-textarea" rows="4" placeholder="Pegá el contenido del .env aquí..." class="env-inp resize-y"></textarea>
+      <div class="flex gap-2">
+        <button onclick="loadProjectFromTextarea('${cardId}')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Cargar valores</button>
+        <input type="file" accept=".env,text/plain" id="${cardId}-file" class="hidden" onchange="loadProjectFromFile('${cardId}', this)" />
+        <button onclick="document.getElementById('${cardId}-file').click()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors">Seleccionar archivo…</button>
+      </div>
+    </div>
+  </details>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">APP_KEY <span class="text-red-400">*</span></label><input id="ef-${cardId}-APP_KEY" type="text" placeholder="base64:..." class="env-inp" autocomplete="off"/></div>
+    <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">JWT_SECRET <span class="text-red-400">*</span></label><input id="ef-${cardId}-JWT_SECRET" type="password" placeholder="string aleatorio largo" class="env-inp" autocomplete="off"/></div>
+    <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">DB_DATABASE</label><input id="ef-${cardId}-DB_DATABASE" type="text" placeholder="${escapeHtml(projectName||'nombre-db')}" class="env-inp" autocomplete="off"/></div>
+    <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">MAIL_HOST</label><input id="ef-${cardId}-MAIL_HOST" type="text" placeholder="smtp.ejemplo.com" class="env-inp" autocomplete="off"/></div>
+    <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">MAIL_USERNAME</label><input id="ef-${cardId}-MAIL_USERNAME" type="text" placeholder="usuario@ejemplo.com" class="env-inp" autocomplete="off"/></div>
+    <div class="flex flex-col gap-1"><label class="text-xs text-gray-500">MAIL_PASSWORD</label><input id="ef-${cardId}-MAIL_PASSWORD" type="password" placeholder="contraseña SMTP" class="env-inp" autocomplete="off"/></div>
+  </div>
+  <label class="flex items-center gap-3 cursor-pointer select-none">
+    <input type="checkbox" id="ef-${cardId}-INSTALL_FORMLY" class="w-4 h-4 accent-blue-500 cursor-pointer rounded" />
+    <span class="text-sm text-gray-300">Instalar @ngx-formly</span>
+    <span class="text-xs text-gray-500">— npm install @ngx-formly/core al primer arranque</span>
+  </label>
+  <div>
+    <p class="text-xs text-gray-600 mb-2">Variables adicionales</p>
+    <div id="custom-vars-${cardId}" class="flex flex-col gap-2"></div>
+    <button onclick="addCustomVar('${cardId}')" class="mt-2 flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs rounded-lg transition-colors">
+      <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Agregar variable
+    </button>
+  </div>
+  <button onclick="generateProjectEnv('${cardId}')" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors self-start">
+    Generar envs/${escapeHtml(projectName||'...')}.env
+  </button>
+</div>
+<div id="${cardId}-output" class="hidden px-6 pb-6 border-t border-gray-800 pt-5 flex flex-col gap-3">
+  <div class="flex items-center justify-between">
+    <p class="text-sm font-medium text-gray-300">Contenido de <code class="text-yellow-300">envs/<span id="${cardId}-out-label">${escapeHtml(projectName||'...')}</span>.env</code></p>
+    <div class="flex gap-2">
+      <button onclick="copyContent('${cardId}-content', this)" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Copiar</button>
+      <button onclick="downloadContent('${cardId}-content', (document.getElementById('${cardId}-name').value||'proyecto')+'.env')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Descargar</button>
+    </div>
+  </div>
+  <pre id="${cardId}-content" class="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs overflow-x-auto text-green-300 leading-relaxed max-h-64 overflow-y-auto"></pre>
+  <p class="text-xs text-amber-400/80">Copiá este contenido en <code class="text-yellow-300">envs/${escapeHtml(projectName||'...')}.env</code>. Nunca lo subas a git.</p>
+</div>`;
       container.appendChild(card);
 
-      // Pre-fill values from env-data.json if provided
       if (valuesMap) {
-        PROJECT_KEYS.forEach(function(k) {
+        PROJECT_KEYS.forEach(k => {
           const el = document.getElementById('ef-' + cardId + '-' + k);
           if (el && valuesMap[k] !== undefined) el.value = valuesMap[k];
         });
         const formly = document.getElementById('ef-' + cardId + '-INSTALL_FORMLY');
         if (formly && valuesMap['INSTALL_FORMLY'] !== undefined) formly.checked = valuesMap['INSTALL_FORMLY'] === 'yes';
         const known = new Set(PROJECT_KEYS.concat(['INSTALL_FORMLY']));
-        Object.keys(valuesMap).forEach(function(k) {
-          if (!known.has(k)) addCustomVar(cardId, k, valuesMap[k]);
-        });
+        Object.keys(valuesMap).forEach(k => { if (!known.has(k)) addCustomVar(cardId, k, valuesMap[k]); });
       }
       return cardId;
     }
@@ -950,20 +740,17 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
       const file = fileInput.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(e) {
-        const textarea = document.getElementById(cardId + '-load-textarea');
-        textarea.value = e.target.result;
+      reader.onload = e => {
+        document.getElementById(cardId + '-load-textarea').value = e.target.result;
         loadProjectFromTextarea(cardId);
-        // Set project name from filename
-        var name = file.name.replace(/\.env$/i, '');
         const nameInput = document.getElementById(cardId + '-name');
-        if (nameInput) nameInput.value = name;
+        if (nameInput) nameInput.value = file.name.replace(/\.env$/i, '');
       };
       reader.readAsText(file);
     }
 
     function loadSharedFromData(sharedMap) {
-      SHARED_KEYS.forEach(function(k) {
+      SHARED_KEYS.forEach(k => {
         const el = document.getElementById('ef-' + k);
         if (el && sharedMap[k] !== undefined) el.value = sharedMap[k];
       });
@@ -974,16 +761,9 @@ docker exec -i shared_postgres pg_restore -U postgres -d ayudando --no-owner --n
         const res = await fetch('/env-data.json', { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
-        if (data.shared && Object.keys(data.shared).length > 0) {
-          loadSharedFromData(data.shared);
-        }
-        if (data.projects) {
-          Object.keys(data.projects).forEach(function(key) {
-            addProjectCard(key, data.projects[key]);
-          });
-        }
+        if (data.shared && Object.keys(data.shared).length > 0) loadSharedFromData(data.shared);
+        if (data.projects) Object.keys(data.projects).forEach(k => addProjectCard(k, data.projects[k]));
       } catch(e) {
-        // Dashboard works without env-data.json (404 = first-start, OK)
         console.warn('env-data.json load failed:', e);
       }
     }
