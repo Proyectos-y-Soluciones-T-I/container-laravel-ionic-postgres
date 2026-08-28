@@ -37,3 +37,9 @@ RUN tailwindcss \
 FROM nginx:1.25-alpine
 
 COPY --from=builder /build/dist/tailwind.css /usr/share/nginx/html/tailwind.css
+COPY --from=builder /build/index.html        /usr/share/nginx/html/index.html
+COPY nginx.conf.template /etc/nginx/conf.d/default.conf.template
+COPY entrypoint.sh       /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

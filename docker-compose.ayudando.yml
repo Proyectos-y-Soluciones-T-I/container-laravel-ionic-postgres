@@ -87,7 +87,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ─── Ionic / Angular 17 (dev server) ─────────────────────────────────────────
+  # ─── Ionic 8 / Angular 20 (dev server) ──────────────────────────────────────
   frontend:
     build:
       context: .
@@ -106,7 +106,7 @@ services:
     environment:
       PROJECT: ayudando
       NODE_ENV: development
-      NODE_OPTIONS: --max_old_space_size=3072
+      NODE_OPTIONS: --max_old_space_size=4096
       NPM_CONFIG_PREFER_OFFLINE: "true"
     networks:
       - ayudando_net

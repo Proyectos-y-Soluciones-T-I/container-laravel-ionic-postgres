@@ -8,5 +8,19 @@
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
     "husky": "^9.0.0"
+  },
+  "dependencies": {
+    "@awesome-cordova-plugins/camera": "^9.5.0",
+    "@awesome-cordova-plugins/chooser": "^9.5.0",
+    "@awesome-cordova-plugins/core": "^9.5.0",
+    "@awesome-cordova-plugins/file": "^9.5.0",
+    "@awesome-cordova-plugins/file-chooser": "^9.5.0",
+    "@awesome-cordova-plugins/http": "^9.5.0",
+    "@awesome-cordova-plugins/network": "^9.5.0",
+    "@awesome-cordova-plugins/preview-any-file": "^9.5.0",
+    "@awesome-cordova-plugins/screen-orientation": "^9.5.0",
+    "@awesome-cordova-plugins/splash-screen": "^9.5.0",
+    "@awesome-cordova-plugins/sqlite": "^9.5.0",
+    "@awesome-cordova-plugins/status-bar": "^9.5.0"
   }
 }

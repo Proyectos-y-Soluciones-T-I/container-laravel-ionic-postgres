@@ -19,6 +19,16 @@ if [ "${INSTALL_FORMLY:-no}" = "yes" ] && [ ! -d "node_modules/@ngx-formly" ]; t
     npm install @ngx-formly/core --legacy-peer-deps --no-audit --no-fund
 fi
 
+# Extra deps — read from .extra-deps (one package per line) if present
+# ponytail: installed once per volume lifetime (sentinel file guards re-runs)
+if [ -f ".extra-deps" ] && [ ! -f "node_modules/.extra-deps-installed" ]; then
+    echo "[${PROJECT}] Installing extra deps from .extra-deps..."
+    # shellcheck disable=SC2046
+    npm install $(grep -v '^\s*#' .extra-deps | grep -v '^\s*$' | tr '\n' ' ') \
+        --legacy-peer-deps --no-audit --no-fund
+    touch node_modules/.extra-deps-installed
+fi
+
 echo "[${PROJECT}] Ionic/Angular dev server on :4200"
 
 # Publish version info to shared dashboard volume (optional mount)
